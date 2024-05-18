@@ -4,6 +4,7 @@
 #include "../BPT/vector.hpp"
 #include "error.hpp"
 
+
 class TokenScanner {
 public:
     static char stringToType(const std::string &tmp) {

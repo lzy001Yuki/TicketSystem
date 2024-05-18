@@ -166,8 +166,7 @@ public:
             if (!flag) {
                 std::cout<<"-1\n";
                 return;
-            }
-            else {
+            } else {
                 std::cout<<"queue\n";
                 Ticket ticket(u, i, st, en, n, d, time, pending);
                 Order.insert(Yuki::pair<char, Ticket> (u, ticket));

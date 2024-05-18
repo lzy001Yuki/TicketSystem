@@ -83,6 +83,6 @@ namespace Yuki {
             }
         }
     };
-} // namespace sjtu
+}
 
 #endif //TICKETSYSTEM_QUEUE_HPP
