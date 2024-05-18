@@ -6,7 +6,6 @@
 #include"utility.hpp"
 
 #define ll long long
-
 template<class Key, class Value, class Function,int max_size, int info_len,int CacheSize>
 class BPT{
     typedef Yuki::pair<Key, Value> T;

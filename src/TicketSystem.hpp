@@ -268,5 +268,4 @@ public:
         if (std::filesystem::exists(path4)) std::filesystem::remove(path4);
     }
 };
-
 #endif //TICKETSYSTEM_TICKETSYSTEM_HPP

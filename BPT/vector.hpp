@@ -118,5 +118,4 @@ namespace Yuki {
     };
 }
 
-
 #endif //TICKETSYSTEM_VECTOR_HPP

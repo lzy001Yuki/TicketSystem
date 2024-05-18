@@ -4,7 +4,6 @@
 #include<filesystem>
 
 class UserManagement;
-
 class UserInfo{
     friend class UserManagement;
     friend class TicketSystem;

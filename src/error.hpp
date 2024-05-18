@@ -11,6 +11,4 @@ public:
     }
 };
 
-
-
 #endif //TICKETSYSTEM_ERROR_HPP

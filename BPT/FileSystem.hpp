@@ -73,7 +73,4 @@ public:
         file.close();
     }
 };
-
-
-
 #endif //TICKETSYSTEM_FILESYSTEM_HPP
