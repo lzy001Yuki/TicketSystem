@@ -171,9 +171,8 @@ public:
             userData.writeAndCache(newNode);
             int next_index = newNode.next_index;
             if (next_index == -1) break;
-            if (!userData.Cache.find(next_index, newNode)) {
-                userData.readAndCache(newNode, next_index);
-            }
+            //if (!userData.Cache.find(next_index, newNode)) userData.readAndCache(newNode, next_index);
+            userData.readAndCache(newNode, next_index);
         }
 
     }
@@ -182,9 +181,10 @@ public:
         if (tmp.isLeaf) return tmp;
         int index = tmp.sonPos[0];
         BPT<char, UserInfo, nameFunction, 20, 2, 2>::node newNode;
-        if (!userData.Cache.find(index, newNode)) {
+        /*if (!userData.Cache.find(index, newNode)) {
             userData.readAndCache(newNode, index);
-        }
+        }*/
+        userData.readAndCache(newNode, index);
         return findMinIndex(newNode);
     }
 };

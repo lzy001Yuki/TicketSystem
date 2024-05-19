@@ -96,7 +96,7 @@ private:
     FileSystem<int, 1> spaceFile;
     // 用于查找，减少对页面数据的读取
     // 每次写入文件的时候都插入，否则node可能会更新
-    Yuki::HashMap<int, node, Function, CacheSize, 5> Cache;
+    //Yuki::HashMap<int, node, Function, CacheSize, 5> Cache;
     // Reuse the deleted place, in Merging Operation
     // we can also use it in Insert Operation
     Yuki::vector<int> Reuse;
@@ -109,16 +109,17 @@ private:
 
     // 没必要每次都写入
     void writeAndCache(node &obj) {
-        if (!Cache.insert(obj.index_num, obj)) {
+        /*if (!Cache.insert(obj.index_num, obj)) {
             int pos = -1;
             node tmp = Cache.pop(pos);
             file.write(tmp, changeToPos(pos));
-        }
+        }*/
+        file.write(obj, changeToPos(obj.index_num));
     }
 
     void readAndCache(node &obj, int index) {
         file.read(obj, changeToPos(index));
-        Cache.insert(index, obj);
+        //Cache.insert(index, obj);
     }
 
     // 返回的是新节点的node，或者原来节点+false
@@ -135,9 +136,8 @@ private:
         } else {
             obj_index = objNode.sonPos[pos];
         }
-        if (!Cache.find(obj_index, nextNode)) {
-            readAndCache(nextNode, obj_index);
-        }
+        //if (!Cache.find(obj_index, nextNode)) readAndCache(nextNode, obj_index);
+        readAndCache(nextNode, obj_index);
         if (nextNode.isLeaf) {
             spilt_node = insertData(obj, nextNode);
         } else {
@@ -375,9 +375,8 @@ private:
         if (tmp.isLeaf) return tmp.key[0];
         int index = tmp.sonPos[0];
         node newNode;
-        if (!Cache.find(index, newNode)) {
-            readAndCache(newNode, index);
-        }
+        //if (!Cache.find(index, newNode)) readAndCache(newNode, index);
+        readAndCache(newNode, index);
         return findMin(newNode);
     }
 
@@ -412,9 +411,8 @@ private:
                 index = objNode.sonPos[++pos];
             } else index = objNode.sonPos[pos];
             node nextNode;
-            if (!Cache.find(index, nextNode)) {
-                readAndCache(nextNode, index);
-            }
+            //if (!Cache.find(index, nextNode)) readAndCache(nextNode, index);
+            readAndCache(nextNode, index);
             if (nextNode.isLeaf) {
                 EraseType dataType = dataErase(obj, nextNode);
                 if (!dataType.need_merge && !dataType.need_update) return dataType;
@@ -478,7 +476,8 @@ private:
         if (pos != objNode.len) {
             int brother_index = objNode.sonPos[pos + 1];
             node brother;// brother是data块
-            if (!Cache.find(brother_index, brother)) readAndCache(brother, brother_index);
+            //if (!Cache.find(brother_index, brother)) readAndCache(brother, brother_index);
+            readAndCache(brother, brother_index);
             // 借块或元素
             if (brother.len > min_size) {
                 nextNode.key[nextNode.len] = brother.key[0];
@@ -506,7 +505,7 @@ private:
                 objNode.len--;
                 writeAndCache(nextNode);
                 writeAndCache(objNode);
-                Cache.erase(brother.index_num);
+                //Cache.erase(brother.index_num);
                 Reuse.push_back(brother.index_num);
                 dataType.updateData = nextNode.key[0];
                 if (objNode.len >= min_size) {
@@ -517,7 +516,8 @@ private:
         } else {
             int brother_index = objNode.sonPos[pos - 1];
             node brother;// brother是data块
-            if (!Cache.find(brother_index, brother)) readAndCache(brother, brother_index);
+            //if (!Cache.find(brother_index, brother)) readAndCache(brother, brother_index);
+            readAndCache(brother, brother_index);
             if (brother.len > min_size) {
                 // 借brother的最后一个元素
                 for (int i = nextNode.len; i > 0; i--) {
@@ -544,7 +544,7 @@ private:
                 objNode.len--;
                 writeAndCache(brother);
                 writeAndCache(objNode);
-                Cache.erase(nextNode.index_num);
+                //Cache.erase(nextNode.index_num);
                 Reuse.push_back(nextNode.index_num);
                 if (objNode.len >= min_size) {
                     dataType.need_merge = false;
@@ -559,7 +559,8 @@ private:
         if (pos != objNode.len ) {
             int brother_index = objNode.sonPos[pos + 1];
             node brother;
-            if (!Cache.find(brother_index, brother)) readAndCache(brother, brother_index);
+            //if (!Cache.find(brother_index, brother)) readAndCache(brother, brother_index);
+            readAndCache(brother, brother_index);
             if (brother.len > min_size) {
                 // 将brother 的第一个块借给nextNode
                 T min_index = findMin(brother);
@@ -593,7 +594,7 @@ private:
                 }
                 objNode.len--;
                 Reuse.push_back(brother.index_num);
-                Cache.erase(brother.index_num);
+                //Cache.erase(brother.index_num);
                 writeAndCache(objNode);
                 writeAndCache(nextNode);
                 if (objNode.len >= min_size) {
@@ -604,7 +605,8 @@ private:
         } else {
             int brother_index = objNode.sonPos[pos - 1];
             node brother;
-            if (!Cache.find(brother_index, brother)) readAndCache(brother, brother_index);
+            //if (!Cache.find(brother_index, brother)) readAndCache(brother, brother_index);
+            readAndCache(brother, brother_index);
             if (brother.len > min_size) {
                 T min_num = findMin(nextNode);
                 for (int i = nextNode.len; i > 0; i--) {
@@ -634,7 +636,7 @@ private:
                 }
                 brother.len += (nextNode.len + 1);
                 objNode.len--;
-                Cache.erase(nextNode.index_num);
+                //Cache.erase(nextNode.index_num);
                 Reuse.push_back(nextNode.index_num);
                 writeAndCache(brother);
                 writeAndCache(objNode);
@@ -699,7 +701,7 @@ public:
     ~BPT() {
         // 把缓存中的元素写入文件当中
         // 先缓存，在弹出的时候再写入文件
-        Cache.clear_(file, info_len);
+        //Cache.clear_(file, info_len);
         spaceFile.write_info(Reuse.size(), 1);
         for (int i = 0; i < Reuse.size(); i++) {
             spaceFile.write(Reuse[i], (i + 1) * sizeof(int));
@@ -771,7 +773,8 @@ public:
             index = root.sonPos[++pos];
         } else index = root.sonPos[pos];
         node nextNode;
-        if (!Cache.find(index, nextNode)) readAndCache(nextNode, index);
+        //if (!Cache.find(index, nextNode)) readAndCache(nextNode, index);
+        readAndCache(nextNode, index);
         EraseType type = erase(x, nextNode);
         if (!type.need_update && !type.need_merge) return;
         if (!type.need_merge && type.need_update) {
@@ -786,9 +789,10 @@ public:
             } else {
                 int son_index = root.sonPos[0];
                 node newRoot;
-                if (!Cache.find(son_index, newRoot)) readAndCache(newRoot, son_index);
+                //if (!Cache.find(son_index, newRoot)) readAndCache(newRoot, son_index);
+                readAndCache(newRoot, son_index);
                 if (!newRoot.isLeaf) {
-                    Cache.erase(root.index_num);
+                    //Cache.erase(root.index_num);
                     Reuse.push_back(root.index_num);
                     root = newRoot;
                     return;
@@ -804,9 +808,10 @@ public:
             } else {
                 int son_index = root.sonPos[0];
                 node newRoot;
-                if (!Cache.find(son_index, newRoot)) readAndCache(newRoot, son_index);
+                //if (!Cache.find(son_index, newRoot)) readAndCache(newRoot, son_index);
+                readAndCache(newRoot, son_index);
                 if (newRoot.isLeaf) return;
-                Cache.erase(root.index_num);
+                //Cache.erase(root.index_num);
                 Reuse.push_back(root.index_num);
                 root = newRoot;
                 return;
@@ -819,22 +824,19 @@ public:
         int pos = keyBinarySearch(root.key, root.len, key);
         node nextNode;
         int index = root.sonPos[pos];
-        if (!Cache.find(index, nextNode)) {
-            readAndCache(nextNode, index);
-        }
+        //if (!Cache.find(index, nextNode)) readAndCache(nextNode, index);
+        readAndCache(nextNode, index);
         while (!nextNode.isLeaf) {
             int pos_ = keyBinarySearch(nextNode.key, nextNode.len, key);
             int index_ = nextNode.sonPos[pos_];
-            if (!Cache.find(index_, nextNode)) {
-                readAndCache(nextNode, index_);
-            }
+            //if (!Cache.find(index_, nextNode)) readAndCache(nextNode, index_);
+            readAndCache(nextNode, index_);
         }
         int pos_ = keyBinarySearch(nextNode.key, nextNode.len, key);
         if (pos_ == nextNode.len) {
             if (nextNode.next_index == -1) return all;
-            if (!Cache.find(nextNode.next_index, nextNode)) {
-                readAndCache(nextNode, nextNode.next_index);
-            }
+            //if (!Cache.find(nextNode.next_index, nextNode)) readAndCache(nextNode, nextNode.next_index);
+            readAndCache(nextNode, nextNode.next_index);
             pos_ = keyBinarySearch(nextNode.key, nextNode.len, key);
             if (nextNode.key[pos_].first != key) return all;
         } else if (nextNode.key[pos_].first != key) return all;
@@ -844,7 +846,8 @@ public:
         }
         while (true) {
             if (nextNode.next_index == -1) return all;
-            if (!Cache.find(nextNode.next_index, nextNode)) readAndCache(nextNode, nextNode.next_index);
+            //if (!Cache.find(nextNode.next_index, nextNode)) readAndCache(nextNode, nextNode.next_index);
+            eadAndCache(nextNode, nextNode.next_index);
             for (int i = 0; i < nextNode.len; i++) {
                 if (nextNode.key[i].first == key) all.push_back(nextNode.key[i].second);
                 else return all;
@@ -862,16 +865,14 @@ public:
         node nextNode;
         if (root.key[pos].first == key) pos++;
         int index = root.sonPos[pos];
-        if (!Cache.find(index, nextNode)) {
-            readAndCache(nextNode, index);
-        }
+        //if (!Cache.find(index, nextNode)) readAndCache(nextNode, index);
+        readAndCache(nextNode, index);
         while (!nextNode.isLeaf) {
             int pos_ = keyBinarySearch(nextNode.key, nextNode.len, key);
             if (nextNode.key[pos_].first == key) pos_++;
             int index_ = nextNode.sonPos[pos_];
-            if (!Cache.find(index_, nextNode)) {
-                readAndCache(nextNode, index_);
-            }
+            //if (!Cache.find(index_, nextNode)) readAndCache(nextNode, index_);
+            readAndCache(nextNode, index_);
         }
         int pos_ = keyBinarySearch(nextNode.key, nextNode.len, key);
         if (nextNode.key[pos_].first != key) return false;
@@ -886,16 +887,14 @@ public:
         node nextNode;
         if (root.key[pos] == obj) pos++;
         int index = root.sonPos[pos];
-        if (!Cache.find(index, nextNode)) {
-            readAndCache(nextNode, index);
-        }
+        //if (!Cache.find(index, nextNode)) readAndCache(nextNode, index);
+        readAndCache(nextNode, index);
         while (!nextNode.isLeaf) {
             int pos_ = binarySearch(nextNode.key, nextNode.len, obj);
             if (nextNode.key[pos_] == obj) pos_++;
             int index_ = nextNode.sonPos[pos_];
-            if (!Cache.find(index_, nextNode)) {
-                readAndCache(nextNode, index_);
-            }
+            //if (!Cache.find(index_, nextNode)) readAndCache(nextNode, index_);
+            readAndCache(nextNode, index_);
         }
         int pos_ = binarySearch(nextNode.key, nextNode.len, obj);
         nextNode.key[pos_] = obj;
@@ -996,7 +995,7 @@ private:
     FileSystem<int, 1> spaceFile;
     // 用于查找，减少对页面数据的读取
     // 每次写入文件的时候都插入，否则node可能会更新
-    Yuki::HashMap<int, node, Function, CacheSize, 101> Cache;
+    //Yuki::HashMap<int, node, Function, CacheSize, 101> Cache;
     // Reuse the deleted place, in Merging Operation
     // we can also use it in Insert Operation
     Yuki::vector<int> Reuse;
@@ -1009,16 +1008,17 @@ private:
 
     // 没必要每次都写入
     void writeAndCache(node &obj) {
-        if (!Cache.insert(obj.index_num, obj)) {
+        /*if (!Cache.insert(obj.index_num, obj)) {
             int pos = -1;
             node tmp = Cache.pop(pos);
             file.write(tmp, changeToPos(pos));
-        }
+        }*/
+        file.write(obj, changeToPos(obj.index_num));
     }
 
     void readAndCache(node &obj, int index) {
         file.read(obj, changeToPos(index));
-        Cache.insert(index, obj);
+        //Cache.insert(index, obj);
     }
 
     // 返回的是新节点的node，或者原来节点+false
@@ -1035,9 +1035,8 @@ private:
         } else {
             obj_index = objNode.sonPos[pos];
         }
-        if (!Cache.find(obj_index, nextNode)) {
-            readAndCache(nextNode, obj_index);
-        }
+        //if (!Cache.find(obj_index, nextNode)) readAndCache(nextNode, obj_index);
+        readAndCache(nextNode, obj_index);
         if (nextNode.isLeaf) {
             spilt_node = insertData(obj, nextNode);
         } else {
@@ -1274,9 +1273,8 @@ private:
         if (tmp.isLeaf) return tmp.key[0];
         int index = tmp.sonPos[0];
         node newNode;
-        if (!Cache.find(index, newNode)) {
-            readAndCache(newNode, index);
-        }
+        //if (!Cache.find(index, newNode)) readAndCache(newNode, index);
+        readAndCache(newNode, index);
         return findMin(newNode);
     }
 
@@ -1311,9 +1309,8 @@ private:
                 index = objNode.sonPos[++pos];
             } else index = objNode.sonPos[pos];
             node nextNode;
-            if (!Cache.find(index, nextNode)) {
-                readAndCache(nextNode, index);
-            }
+            //if (!Cache.find(index, nextNode)) readAndCache(nextNode, index);
+            readAndCache(nextNode, index);
             if (nextNode.isLeaf) {
                 EraseType dataType = dataErase(obj, nextNode);
                 if (!dataType.need_merge && !dataType.need_update) return dataType;
@@ -1377,7 +1374,8 @@ private:
         if (pos != objNode.len) {
             int brother_index = objNode.sonPos[pos + 1];
             node brother;// brother是data块
-            if (!Cache.find(brother_index, brother)) readAndCache(brother, brother_index);
+            //if (!Cache.find(brother_index, brother)) readAndCache(brother, brother_index);
+            readAndCache(brother, brother_index);
             // 借块或元素
             if (brother.len > min_size) {
                 nextNode.key[nextNode.len] = brother.key[0];
@@ -1405,7 +1403,7 @@ private:
                 objNode.len--;
                 writeAndCache(nextNode);
                 writeAndCache(objNode);
-                Cache.erase(brother.index_num);
+                //Cache.erase(brother.index_num);
                 Reuse.push_back(brother.index_num);
                 dataType.updateData = nextNode.key[0];
                 if (objNode.len >= min_size) {
@@ -1416,7 +1414,8 @@ private:
         } else {
             int brother_index = objNode.sonPos[pos - 1];
             node brother;// brother是data块
-            if (!Cache.find(brother_index, brother)) readAndCache(brother, brother_index);
+            //if (!Cache.find(brother_index, brother)) readAndCache(brother, brother_index);
+            readAndCache(brother, brother_index);
             if (brother.len > min_size) {
                 // 借brother的最后一个元素
                 for (int i = nextNode.len; i > 0; i--) {
@@ -1443,7 +1442,7 @@ private:
                 objNode.len--;
                 writeAndCache(brother);
                 writeAndCache(objNode);
-                Cache.erase(nextNode.index_num);
+                //Cache.erase(nextNode.index_num);
                 Reuse.push_back(nextNode.index_num);
                 if (objNode.len >= min_size) {
                     dataType.need_merge = false;
@@ -1458,7 +1457,8 @@ private:
         if (pos != objNode.len ) {
             int brother_index = objNode.sonPos[pos + 1];
             node brother;
-            if (!Cache.find(brother_index, brother)) readAndCache(brother, brother_index);
+            //if (!Cache.find(brother_index, brother)) readAndCache(brother, brother_index);
+            readAndCache(brother, brother_index);
             if (brother.len > min_size) {
                 // 将brother 的第一个块借给nextNode
                 T min_index = findMin(brother);
@@ -1492,7 +1492,7 @@ private:
                 }
                 objNode.len--;
                 Reuse.push_back(brother.index_num);
-                Cache.erase(brother.index_num);
+                //Cache.erase(brother.index_num);
                 writeAndCache(objNode);
                 writeAndCache(nextNode);
                 if (objNode.len >= min_size) {
@@ -1503,7 +1503,8 @@ private:
         } else {
             int brother_index = objNode.sonPos[pos - 1];
             node brother;
-            if (!Cache.find(brother_index, brother)) readAndCache(brother, brother_index);
+            //if (!Cache.find(brother_index, brother)) readAndCache(brother, brother_index);
+            readAndCache(brother, brother_index);
             if (brother.len > min_size) {
                 T min_num = findMin(nextNode);
                 for (int i = nextNode.len; i > 0; i--) {
@@ -1533,7 +1534,7 @@ private:
                 }
                 brother.len += (nextNode.len + 1);
                 objNode.len--;
-                Cache.erase(nextNode.index_num);
+                //Cache.erase(nextNode.index_num);
                 Reuse.push_back(nextNode.index_num);
                 writeAndCache(brother);
                 writeAndCache(objNode);
@@ -1598,7 +1599,7 @@ public:
     ~BPT() {
         // 把缓存中的元素写入文件当中
         // 先缓存，在弹出的时候再写入文件
-        Cache.clear_(file, info_len);
+        //Cache.clear_(file, info_len);
         spaceFile.write_info(Reuse.size(), 1);
         for (int i = 0; i < Reuse.size(); i++) {
             spaceFile.write(Reuse[i], (i + 1) * sizeof(int));
@@ -1671,7 +1672,8 @@ public:
             index = root.sonPos[++pos];
         } else index = root.sonPos[pos];
         node nextNode;
-        if (!Cache.find(index, nextNode)) readAndCache(nextNode, index);
+        //if (!Cache.find(index, nextNode)) readAndCache(nextNode, index);
+        readAndCache(nextNode, index);
         EraseType type = erase(x, nextNode);
         if (!type.need_update && !type.need_merge) return;
         if (!type.need_merge && type.need_update) {
@@ -1686,9 +1688,10 @@ public:
             } else {
                 int son_index = root.sonPos[0];
                 node newRoot;
-                if (!Cache.find(son_index, newRoot)) readAndCache(newRoot, son_index);
+                //if (!Cache.find(son_index, newRoot)) readAndCache(newRoot, son_index);
+                readAndCache(newRoot, son_index);
                 if (!newRoot.isLeaf) {
-                    Cache.erase(root.index_num);
+                    //Cache.erase(root.index_num);
                     Reuse.push_back(root.index_num);
                     root = newRoot;
                     return;
@@ -1704,9 +1707,10 @@ public:
             } else {
                 int son_index = root.sonPos[0];
                 node newRoot;
-                if (!Cache.find(son_index, newRoot)) readAndCache(newRoot, son_index);
+                //if (!Cache.find(son_index, newRoot)) readAndCache(newRoot, son_index);
+                readAndCache(newRoot, son_index);
                 if (newRoot.isLeaf) return;
-                Cache.erase(root.index_num);
+                //Cache.erase(root.index_num);
                 Reuse.push_back(root.index_num);
                 root = newRoot;
                 return;
@@ -1719,22 +1723,18 @@ public:
         int pos = keyBinarySearch(root.key, root.len, key);
         node nextNode;
         int index = root.sonPos[pos];
-        if (!Cache.find(index, nextNode)) {
-            readAndCache(nextNode, index);
-        }
+        //if (!Cache.find(index, nextNode)) readAndCache(nextNode, index);
+        readAndCache(nextNode, index);
         while (!nextNode.isLeaf) {
             int pos_ = keyBinarySearch(nextNode.key, nextNode.len, key);
             int index_ = nextNode.sonPos[pos_];
-            if (!Cache.find(index_, nextNode)) {
-                readAndCache(nextNode, index_);
-            }
+            //if (!Cache.find(index_, nextNode)) readAndCache(nextNode, index_);
+            readAndCache(nextNode, index_);
         }
         int pos_ = keyBinarySearch(nextNode.key, nextNode.len, key);
         if (pos_ == nextNode.len) {
             if (nextNode.next_index == -1) return all;
-            if (!Cache.find(nextNode.next_index, nextNode)) {
-                readAndCache(nextNode, nextNode.next_index);
-            }
+            //if (!Cache.find(nextNode.next_index, nextNode)) readAndCache(nextNode, nextNode.next_index);
             pos_ = keyBinarySearch(nextNode.key, nextNode.len, key);
             if (strcmp(nextNode.key[pos_].first, key) != 0) return all;
         } else if (strcmp(nextNode.key[pos_].first, key) != 0) return all;
@@ -1744,7 +1744,8 @@ public:
         }
         while (true) {
             if (nextNode.next_index == -1) return all;
-            if (!Cache.find(nextNode.next_index, nextNode)) readAndCache(nextNode, nextNode.next_index);
+            //if (!Cache.find(nextNode.next_index, nextNode)) readAndCache(nextNode, nextNode.next_index);
+            readAndCache(nextNode, nextNode.next_index);
             for (int i = 0; i < nextNode.len; i++) {
                 if (strcmp(nextNode.key[i].first, key) == 0) all.push_back(nextNode.key[i].second);
                 else return all;
@@ -1762,18 +1763,16 @@ public:
         node nextNode;
         if (strcmp(root.key[pos].first, Key) == 0) pos++;
         int index = root.sonPos[pos];
-        if (!Cache.find(index, nextNode)) {
-            readAndCache(nextNode, index);
-        }
+        //if (!Cache.find(index, nextNode)) readAndCache(nextNode, index);
+        readAndCache(nextNode, index);
         while (!nextNode.isLeaf) {
             int pos_ = keyBinarySearch(nextNode.key, nextNode.len, Key);
             if (strcmp(nextNode.key[pos_].first, Key) == 0) {
                 pos_++;
             }
             int index_ = nextNode.sonPos[pos_];
-            if (!Cache.find(index_, nextNode)) {
-                readAndCache(nextNode, index_);
-            }
+            //if (!Cache.find(index_, nextNode)) readAndCache(nextNode, index_);
+            readAndCache(nextNode, index_);
         }
         int pos_ = keyBinarySearch(nextNode.key, nextNode.len, Key);
         if (strcmp(nextNode.key[pos_].first, Key) != 0) return false;
@@ -1788,16 +1787,14 @@ public:
         node nextNode;
         if (root.key[pos] == obj) pos++;
         int index = root.sonPos[pos];
-        if (!Cache.find(index, nextNode)) {
-            readAndCache(nextNode, index);
-        }
+        //if (!Cache.find(index, nextNode)) readAndCache(nextNode, index);
+        readAndCache(nextNode, index);
         while (!nextNode.isLeaf) {
             int pos_ = binarySearch(nextNode.key, nextNode.len, obj);
             if (nextNode.key[pos_] == obj) pos_++;
             int index_ = nextNode.sonPos[pos_];
-            if (!Cache.find(index_, nextNode)) {
-                readAndCache(nextNode, index_);
-            }
+            //if (!Cache.find(index_, nextNode)) readAndCache(nextNode, index_);
+            readAndCache(nextNode, index_);
         }
         int pos_ = binarySearch(nextNode.key, nextNode.len, obj);
         nextNode.key[pos_] = obj;
