@@ -1,3 +1,4 @@
+#pragma GCC optimize(2)
 #include <iostream>
 #include<string>
 #include<cstdio>
@@ -313,7 +314,7 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
 int main() {
     //std::freopen("../testcases/pressure_1_easy/52.in", "r", stdin);
     //std::freopen("answer.txt", "w", stdout);
-    //std::ios::sync_with_stdio(false);
+    std::ios::sync_with_stdio(false);
     UserManagement userManagement;
     TrainSystem trainSystem;
     TicketSystem ticketSystem;
