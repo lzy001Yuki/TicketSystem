@@ -17,4 +17,5 @@ add_executable(code
         src/TicketSystem.hpp
         src/TrainSystem.hpp
         src/UserSystem.hpp
-        src/TokenScanner.hpp)
+        src/TokenScanner.hpp
+)

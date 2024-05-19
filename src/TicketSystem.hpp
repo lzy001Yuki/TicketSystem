@@ -88,8 +88,8 @@ public:
 
 class TicketSystem{
 private:
-    BPT<char, Ticket, TicketFunction, 20, 2, 8096> Order;
-    BPT<TrainTime, Ticket, TicketFunction, 20, 2, 8096> Waiting;
+    BPT<char, Ticket, TicketFunction, 20, 2, 512> Order;
+    BPT<TrainTime, Ticket, TicketFunction, 20, 2, 512> Waiting;
 
     static void update_ticket(TrainInfo &trainInfo, const Ticket& ticket, TrainSystem& train, bool type) {
         int s_index = train.findDestination(ticket.st, trainInfo, 1, trainInfo.stationNum);

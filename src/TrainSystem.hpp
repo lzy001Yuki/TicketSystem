@@ -424,9 +424,9 @@ class TrainSystem{
     friend class TokenScanner;
 private:
     // trainId在trainIndex里对应index的位置
-    BPT<char, int, TrainFunction, 20, 2, 1024> trainData;
+    BPT<char, int, TrainFunction, 20, 2, 512> trainData;
     // <station, index> station里面的所有trainId的index
-    BPT<char, int, TrainFunction, 20, 2, 1024> stationData; // 管理的是release 以后的车次
+    BPT<char, int, TrainFunction, 20, 2, 512> stationData; // 管理的是release 以后的车次
     int total_index = 0;
     Yuki::vector<int> allIndex;
     FileSystem<TrainInfo, 2> trainIndex; // 第一个是total_index
@@ -717,7 +717,6 @@ public:
             if (ans != -1) {
                 // 读取真正的trainInfo
                 int cost = objTrain.stations[ans].price - objTrain.stations[res].price;
-                /// 所需时间是按照始发站的arriveTime还是leaveTime？？？
                 int time_ = objTrain.stations[ans].arriveTime - objTrain.stations[res].leaveTime;
                 if (flag) tq.push(compInfo(cost, time_, objTrain.trainID, res, ans));
                 else cq.push(compInfo(cost, time_, objTrain.trainID, res, ans));
@@ -783,11 +782,6 @@ public:
                     // 在到达后继续换乘
                     StationInfo en = secTrain.stations[end];
                     // 换乘车辆的发车时间
-                    /// 换乘是否一定要在同一天
-                    /// 当然不是啦（）还可以是一个月呢
-                    //Day mid_start = checkBegin(arrive_mid.first, secTrain.ini_time, secTrain.stations[m_index].leaveTime);
-                    //if (!secTrain.date.check(mid_start)) continue;
-                    //Yuki::pair<Day, Time> mid_arrive = showTime(mid_start, secTrain.ini_time, secTrain.stations[m_index].leaveTime);
                     Day mid_earliest(showTime(secTrain.date.st, secTrain.ini_time, secTrain.stations[m_index].leaveTime).first);
                     Day mid_latest(showTime(secTrain.date.en, secTrain.ini_time, secTrain.stations[m_index].leaveTime).first);
                     Date mid_dur(mid_earliest, mid_latest);
