@@ -17,15 +17,6 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
     std::cout<<timeStamp<<' ';
 
     // 检查query_transfer的问题 余票也有问题
-    if (timeStamp == "[750566]" || timeStamp == "[801319]" || timeStamp == "[557438]") {
-        int y = 0;
-    }
-    if (timeStamp == "[831291]") {
-        int z = 3;
-    }
-    if (!userSystem.checking()) {
-        int y = 0;
-    }
 
     if (cmd == "add_user") {
         char cur_name[66] = {'\0'};
