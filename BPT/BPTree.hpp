@@ -847,7 +847,7 @@ public:
         while (true) {
             if (nextNode.next_index == -1) return all;
             //if (!Cache.find(nextNode.next_index, nextNode)) readAndCache(nextNode, nextNode.next_index);
-            eadAndCache(nextNode, nextNode.next_index);
+            readAndCache(nextNode, nextNode.next_index);
             for (int i = 0; i < nextNode.len; i++) {
                 if (nextNode.key[i].first == key) all.push_back(nextNode.key[i].second);
                 else return all;
