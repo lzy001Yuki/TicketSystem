@@ -10,5 +10,4 @@ public:
         return "Invalid\n";
     }
 };
-
 #endif //TICKETSYSTEM_ERROR_HPP

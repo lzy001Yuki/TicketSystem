@@ -85,5 +85,4 @@ namespace Yuki {
     };
 }
 
-
 #endif //TICKETSYSTEM_QUEUE_HPP

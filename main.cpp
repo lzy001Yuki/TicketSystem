@@ -16,11 +16,15 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
     std::string cmd = parse[1];
     std::cout<<timeStamp<<' ';
 
+    // 检查query_transfer的问题 余票也有问题
     if (timeStamp == "[750566]" || timeStamp == "[801319]" || timeStamp == "[557438]") {
         int y = 0;
     }
     if (timeStamp == "[831291]") {
         int z = 3;
+    }
+    if (!userSystem.checking()) {
+        int y = 0;
     }
 
     if (cmd == "add_user") {
@@ -307,9 +311,9 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
 }
 
 int main() {
-    //std::freopen("../testcases/basic_1/1.in", "r", stdin);
+    //std::freopen("../testcases/pressure_1_easy/52.in", "r", stdin);
     //std::freopen("answer.txt", "w", stdout);
-    std::ios::sync_with_stdio(false);
+    //std::ios::sync_with_stdio(false);
     UserManagement userManagement;
     TrainSystem trainSystem;
     TicketSystem ticketSystem;

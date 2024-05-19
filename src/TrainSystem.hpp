@@ -6,7 +6,6 @@
 #include"../BPT/BPTree.hpp"
 #include"../BPT/priority_queue.hpp"
 
-/// 修改：BPT中不能够储存太多信息，储存char int足够,int代表在文件中的位置，新开一个储存所有信息的文件fileSystem
 int Month[13] = {0,31,29,31,30,31,30,31,31,30,31,30,31};
 class compInfo{
     friend class timeComp;

@@ -149,6 +149,10 @@ public:
             return;
         }
         // 这辆车的始发日期
+        if (n > trainInfo.stations[0].remainSeats[0]) {
+            std::cout<<"-1\n";
+            return;
+        }
         Day st_day = TrainSystem::checkBegin(d, trainInfo.ini_time, trainInfo.stations[s_index].leaveTime);
         int dur_time = TrainSystem::cal_now(trainInfo.date, st_day);
         int seats = TrainSystem::cal_ticket(trainInfo, d, s_index, t_index);
