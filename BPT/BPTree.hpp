@@ -1735,6 +1735,7 @@ public:
         if (pos_ == nextNode.len) {
             if (nextNode.next_index == -1) return all;
             //if (!Cache.find(nextNode.next_index, nextNode)) readAndCache(nextNode, nextNode.next_index);
+            readAndCache(nextNode, nextNode.next_index);
             pos_ = keyBinarySearch(nextNode.key, nextNode.len, key);
             if (strcmp(nextNode.key[pos_].first, key) != 0) return all;
         } else if (strcmp(nextNode.key[pos_].first, key) != 0) return all;
