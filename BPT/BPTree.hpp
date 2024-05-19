@@ -96,7 +96,7 @@ private:
     FileSystem<int, 1> spaceFile;
     // 用于查找，减少对页面数据的读取
     // 每次写入文件的时候都插入，否则node可能会更新
-    Yuki::HashMap<int, node, Function, CacheSize> Cache;
+    Yuki::HashMap<int, node, Function, CacheSize, 1> Cache;
     // Reuse the deleted place, in Merging Operation
     // we can also use it in Insert Operation
     Yuki::vector<int> Reuse;
@@ -996,7 +996,7 @@ private:
     FileSystem<int, 1> spaceFile;
     // 用于查找，减少对页面数据的读取
     // 每次写入文件的时候都插入，否则node可能会更新
-    Yuki::HashMap<int, node, Function, CacheSize> Cache;
+    Yuki::HashMap<int, node, Function, CacheSize, 1> Cache;
     // Reuse the deleted place, in Merging Operation
     // we can also use it in Insert Operation
     Yuki::vector<int> Reuse;

@@ -76,7 +76,7 @@ class UserManagement{
     friend class TicketSystem;
 private:
     // 键值对为username--user_info
-    BPT<char, UserInfo, nameFunction, 50, 2, 8096> userData;
+    BPT<char, UserInfo, nameFunction, 50, 2, 1> userData;
 public:
     UserManagement(): userData("user.txt", "space_user.txt"){}
     ~UserManagement() = default;
@@ -162,8 +162,8 @@ public:
         if (std::filesystem::exists(path2)) std::filesystem::remove(path2);
     }
     void LogTraverse() {
-        BPT<char, UserInfo, nameFunction, 50, 2, 8096>::node u_root = userData.root;
-        BPT<char, UserInfo, nameFunction, 50, 2, 8096>::node newNode = findMinIndex(u_root);
+        BPT<char, UserInfo, nameFunction, 50, 2, 1>::node u_root = userData.root;
+        BPT<char, UserInfo, nameFunction, 50, 2, 1>::node newNode = findMinIndex(u_root);
         while (true) {
             for (int i = 0; i < newNode.len; i++) {
                 if (newNode.key[i].second.isLogin) newNode.key[i].second.isLogin = false;
@@ -178,10 +178,10 @@ public:
 
     }
 
-    BPT<char, UserInfo, nameFunction, 50, 2, 8096>::node findMinIndex(const BPT<char, UserInfo, nameFunction, 50, 2, 8096>::node& tmp) {
+    BPT<char, UserInfo, nameFunction, 50, 2, 1>::node findMinIndex(const BPT<char, UserInfo, nameFunction, 50, 2, 1>::node& tmp) {
         if (tmp.isLeaf) return tmp;
         int index = tmp.sonPos[0];
-        BPT<char, UserInfo, nameFunction, 50, 2, 8096>::node newNode;
+        BPT<char, UserInfo, nameFunction, 50, 2, 1>::node newNode;
         if (!userData.Cache.find(index, newNode)) {
             userData.readAndCache(newNode, index);
         }
