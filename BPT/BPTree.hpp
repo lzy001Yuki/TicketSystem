@@ -1721,8 +1721,8 @@ public:
         int pos = keyBinarySearch(root.key, root.len, key);
         node nextNode;
         int index = root.sonPos[pos];
-        //if (!Cache.find(index, nextNode)) readAndCache(nextNode, index);
-        readAndCache(nextNode, index);
+        if (!Cache.find(index, nextNode)) readAndCache(nextNode, index);
+        //readAndCache(nextNode, index);
         while (!nextNode.isLeaf) {
             int pos_ = keyBinarySearch(nextNode.key, nextNode.len, key);
             int index_ = nextNode.sonPos[pos_];
