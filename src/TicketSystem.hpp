@@ -14,19 +14,17 @@ class Ticket{
 private:
     char user[66] = {'\0'};
     char trainID[66] = {'\0'};
-    char st[66] = {'\0'};
-    char en[66] = {'\0'};
+    int st = 0;
+    int en = 0;
     int num = 0;
     Day day;// 这张票的始发站日期，但不是该车次的始发站日期
     Status status = success;
     int time = 0;
 public:
     Ticket() = default;
-    explicit Ticket(const char*u, const char *t, const char *s, const char *e, int n, const Day& d, int time_, Status sta) :num(n), status(sta), day(d), time(time_) {
+    explicit Ticket(const char*u, const char *t, int s, int e, int n, const Day& d, int time_, Status sta) :num(n), status(sta), day(d), time(time_), st(s), en(e) {
         strcpy(user, u);
         strcpy(trainID, t);
-        strcpy(st, s);
-        strcpy(en, e);
     }
     bool operator<(const Ticket& other) const {
         return time < other.time;
@@ -45,8 +43,8 @@ public:
         status = other.status;
         strcpy(user, other.user);
         strcpy(trainID, other.trainID);
-        strcpy(st, other.st);
-        strcpy(en, other.en);
+        st = other.st;
+        en = other.en;
     }
 };
 
@@ -92,8 +90,8 @@ private:
     BPT<TrainTime, Ticket, TicketFunction, 10, 2, 512> Waiting;
 
     static void update_ticket(TrainInfo &trainInfo, const Ticket& ticket, TrainSystem& train, bool type) {
-        int s_index = train.findDestination(ticket.st, trainInfo, 1, trainInfo.stationNum);
-        int t_index = train.findDestination(ticket.en, trainInfo, 1, trainInfo.stationNum);
+        int s_index = ticket.st;
+        int t_index = ticket.en;
         Day now = TrainSystem::checkBegin(ticket.day, trainInfo.ini_time, trainInfo.stations[s_index].leaveTime);
         int dur = TrainSystem::cal_now(trainInfo.date, now);
         if (type) {
@@ -109,7 +107,13 @@ public:
 
     void buy_ticket(const char *u, const char *i, Day &d, const int &n, const char *st, const char *en, bool flag, UserManagement& user, TrainSystem& train, int time) {
         UserInfo userInfo;
-        user.userData.findKV(u, userInfo);
+        int u_index;
+        bool exist = user.userData.findKV(u, u_index);
+        if (!exist) {
+            std::cout<<"-1\n";
+            return;
+        }
+        user.userIndex.read(userInfo, UserManagement::changeToPos(u_index));
         if (!userInfo.isLogin) {
             std::cout<<"-1\n";
             return;
@@ -161,7 +165,7 @@ public:
             trainInfo.stations[s_index].remainSeats[dur_time] -= n;
             trainInfo.stations[t_index].remainSeats[dur_time] += n;
             int p = n * (trainInfo.stations[t_index].price - trainInfo.stations[s_index].price);
-            Ticket ticket(u, i, st, en, n, d, time, success);
+            Ticket ticket(u, i, s_index, t_index, n, d, time, success);
             Order.insert(Yuki::pair<char, Ticket> (u, ticket));
             //train.trainData.update(Yuki::pair<char, TrainInfo> (trainInfo.trainID, trainInfo));
             train.trainIndex.write(trainInfo, TrainSystem::indexToPos(info_index));
@@ -172,7 +176,7 @@ public:
                 return;
             } else {
                 std::cout<<"queue\n";
-                Ticket ticket(u, i, st, en, n, d, time, pending);
+                Ticket ticket(u, i, s_index, t_index, n, d, time, pending);
                 Order.insert(Yuki::pair<char, Ticket> (u, ticket));
                 TrainTime trainTime(trainInfo.trainID, st_day);
                 Waiting.insert(Yuki::pair<TrainTime, Ticket> (trainTime, ticket));
@@ -182,7 +186,13 @@ public:
 
     void query_order(const char *u, UserManagement& user, TrainSystem& train) {
         UserInfo userInfo;
-        user.userData.findKV(u, userInfo);
+        int u_index;
+        bool exist = user.userData.findKV(u, u_index);
+        if (!exist) {
+            std::cout<<"-1\n";
+            return;
+        }
+        user.userIndex.read(userInfo, UserManagement::changeToPos(u_index));
         if (!userInfo.isLogin) {
             std::cout<<"-1\n";
             return;
@@ -194,19 +204,19 @@ public:
             if (log[i].status == pending) std::cout<<"[pending] ";
             if (log[i].status == refunded) std::cout<<"[refunded] ";
             std::cout<<log[i].trainID<<" ";
-            std::cout<<log[i].st<<' ';
             TrainInfo trainInfo;
             int info_index;
             char tr[66] = {'\0'};
             strcpy(tr, log[i].trainID);
             train.trainData.findKV(log[i].trainID, info_index);
             train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
-            int s_index = train.findDestination(log[i].st, trainInfo, 1, trainInfo.stationNum);
+            int s_index = log[i].st;
             Day st_day = TrainSystem::checkBegin(log[i].day, trainInfo.ini_time, trainInfo.stations[s_index].leaveTime);
             Yuki::pair<Day, Time> leave = TrainSystem::showTime(st_day, trainInfo.ini_time, trainInfo.stations[s_index].leaveTime);
+            std::cout<<trainInfo.stations[log[i].st].name<<' ';
             std::cout<<leave.first<<' '<<leave.second<<" -> ";
-            std::cout<<log[i].en<<' ';
-            int t_index = train.findDestination(log[i].en, trainInfo, 1, trainInfo.stationNum);
+            std::cout<<trainInfo.stations[log[i].en].name<<' ';
+            int t_index = log[i].en;
             Yuki::pair<Day, Time> arrive = TrainSystem::showTime(st_day, trainInfo.ini_time, trainInfo.stations[t_index].arriveTime);
             std::cout<<arrive.first<<' '<<arrive.second<<' ';
             int price = trainInfo.stations[t_index].price - trainInfo.stations[s_index].price;
@@ -216,17 +226,19 @@ public:
 
     int refund_ticket(const char *u, int n, UserManagement& user, TrainSystem& train) {
         UserInfo userInfo;
-        user.userData.findKV(u, userInfo);
+        int u_index;
+        bool exist = user.userData.findKV(u, u_index);
+        if (!exist) return -1;
+        user.userIndex.read(userInfo, UserManagement::changeToPos(u_index));
         if (!userInfo.isLogin) return -1;
         Yuki::vector<Ticket> log = Order.find(u);
         if (n > log.size()) return -1;
         Ticket refund = log[log.size() - n];
-        //if (refund.status != success) return -1;
         TrainInfo trainInfo;
         int info_index;
         train.trainData.findKV(refund.trainID, info_index);
         train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
-        int index = train.findDestination(refund.st, trainInfo, 1, trainInfo.stationNum);
+        int index = refund.st;
         Day st_day = TrainSystem::checkBegin(refund.day, trainInfo.ini_time, trainInfo.stations[index].leaveTime);
         TrainTime re_train(refund.trainID, st_day);
         if (refund.status == refunded) return -1;
@@ -237,11 +249,8 @@ public:
             update_ticket(trainInfo, refund, train, true);
             Yuki::vector<Ticket> waitingList = Waiting.find(re_train);
             for (int i = 0; i < waitingList.size(); i++) {
-                int s_index = train.findDestination(waitingList[i].st, trainInfo, 1, trainInfo.stationNum);
-                if (s_index == -1) {
-                    int y = 2;
-                }
-                int t_index = train.findDestination(waitingList[i].en, trainInfo, 1, trainInfo.stationNum);
+                int s_index = waitingList[i].st;
+                int t_index = waitingList[i].en;
                 // 在re_train.day这一天发车
                 int seats = TrainSystem::cal_ticket_(trainInfo, re_train.day, s_index, t_index);
                 Day w_st = TrainSystem::checkBegin(waitingList[i].day, trainInfo.ini_time,

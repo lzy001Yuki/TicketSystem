@@ -72,67 +72,92 @@ public:
 };
 
 class UserManagement{
-    typedef Yuki::pair<char, UserInfo> KV;
     friend class TicketSystem;
 private:
     // 键值对为username--user_info
-    BPT<char, UserInfo, nameFunction, 22, 2, 2> userData;
+    BPT<char, int, nameFunction, 22, 2, 2> userData;
+    FileSystem<UserInfo, 2> userIndex;
+    int total = 0;
+
+    static ll changeToPos(int index) {
+        return 2 * sizeof(int) + index * sizeof(UserInfo);
+    }
 public:
-    UserManagement(): userData("user.txt", "space_user.txt"){}
-    ~UserManagement() = default;
+    UserManagement(): userData("user.txt", "space_user.txt"){
+        userIndex.initialise("userIndex.txt");
+        userIndex.get_info(total, 1);
+    }
+    ~UserManagement() {
+        userIndex.write_info(total, 1);
+    }
     int addUser(const char* cur_user, const char *new_user, const char *pw, const char *name, const char *mail, int p) {
         if (userData.empty()) {
             UserInfo rootInfo(new_user, pw, name, mail, 10);
-            KV root(new_user, rootInfo);
-            userData.insert(root);
+            userData.insert(Yuki::pair<char, int>(new_user, total));
+            userIndex.write(rootInfo, changeToPos(total));
+            UserInfo other;
+            userIndex.read(other, changeToPos(total));
+            total++;
             return 0;
         }
         if (cur_user == nullptr) return -1;
         UserInfo cur_info;
-        bool isHere = userData.findKV(cur_user, cur_info);
+        int info_index;
+        bool isHere = userData.findKV(cur_user, info_index);
         if (!isHere) return -1; // cur_name 不存在
+        userIndex.read(cur_info, changeToPos(info_index));
         if (!cur_info.isLogin) return -1; // 当前用户未登录
         if (p > cur_info.privilege) return -1; // 创建用户权限大于当前用户
         if (p == cur_info.privilege && strcmp(cur_user, new_user) != 0) return -1;
         UserInfo user_info(new_user, pw, name, mail, p);
-        KV newUser(new_user, user_info);
-        bool exist = userData.findKV(new_user, user_info);
+        int user_index;
+        bool exist = userData.findKV(new_user, user_index);
         if (exist) {
             return -1;
         }
-        userData.insert(newUser);
+        userData.insert(Yuki::pair<char, int> (new_user, total));
+        userIndex.write(user_info, changeToPos(total));
+        total++;
         return 0;
     }
 
     int logIn(const char *username, const char *password) {
         UserInfo now_user;
-        bool exist = userData.findKV(username, now_user);
+        int now_index;
+        bool exist = userData.findKV(username, now_index);
         if (!exist) return -1;
+        userIndex.read(now_user, changeToPos(now_index));
         if (now_user.isLogin) return -1;
         if (strcmp(password, now_user.password) != 0) return -1;
         now_user.isLogin = true;
-        userData.update(Yuki::pair<char, UserInfo> (username, now_user));
+        userIndex.write(now_user, changeToPos(now_index));
         return 0;
     }
 
     int logOut(const char *username) {
         UserInfo now_user;
-        bool exist = userData.findKV(username, now_user);
+        int now_index;
+        bool exist = userData.findKV(username, now_index);
         if (!exist) return -1;
+        userIndex.read(now_user, changeToPos(now_index));
         if (!now_user.isLogin) return -1;
         now_user.isLogin = false;
-        userData.update(Yuki::pair<char, UserInfo> (username, now_user));
+        userIndex.write(now_user, changeToPos(now_index));
         return 0;
     }
 
     Yuki::pair<UserInfo, bool> query_profile(const char* cur_name, const char *username) {
         UserInfo cur_user;
-        bool exist = userData.findKV(cur_name, cur_user);
+        int cur_index;
+        bool exist = userData.findKV(cur_name, cur_index);
         if (!exist) return {cur_user, false};
+        userIndex.read(cur_user, changeToPos(cur_index));
         if (!cur_user.isLogin) return {cur_user, false};
         UserInfo query_user;
-        bool exist_ = userData.findKV(username, query_user);
+        int q_index;
+        bool exist_ = userData.findKV(username, q_index);
         if (!exist_) return {query_user, false};
+        userIndex.read(query_user, changeToPos(q_index));
         if (cur_user.privilege < query_user.privilege) return {query_user, false};
         if (cur_user.privilege == query_user.privilege && strcmp(cur_name, username) != 0) return {query_user, false};
         return {query_user, true};
@@ -140,19 +165,23 @@ public:
 
     Yuki::pair<UserInfo, bool> modify_profile(const char* cur_name, const char *username, const char *pw, const char *n, const char *mail, int p = -1) {
         UserInfo cur_user;
-        bool exist = userData.findKV(cur_name, cur_user);
+        int cur_index;
+        bool exist = userData.findKV(cur_name, cur_index);
         if (!exist) return {cur_user, false};
+        userIndex.read(cur_user, changeToPos(cur_index));
         if (!cur_user.isLogin) return {cur_user, false};
         UserInfo query_user;
-        bool exist_ = userData.findKV(username, query_user);
+        int q_index;
+        bool exist_ = userData.findKV(username, q_index);
+        if (!exist_) return {query_user, false};
+        userIndex.read(query_user, changeToPos(q_index));
         if (query_user.privilege > cur_user.privilege) return {cur_user, false};
         if (query_user.privilege == cur_user.privilege && ((strcmp(cur_name, username) != 0) || p >= query_user.privilege) ) return {cur_user, false};
-        if (!exist_) return {query_user, false};
         if (pw[0] != '\0') strcpy(query_user.password, pw);
         if (n[0] != '\0') strcpy(query_user.name, n);
         if (mail[0] != '\0') strcpy(query_user.mailAddr, mail);
         if (p != -1) query_user.privilege = p;
-        userData.update(Yuki::pair<char, UserInfo> (username, query_user));
+        userIndex.write(query_user, changeToPos(q_index));
         return {query_user, true};
     }
     static void clean() {
@@ -162,31 +191,16 @@ public:
         if (std::filesystem::exists(path2)) std::filesystem::remove(path2);
     }
     void LogTraverse() {
-        BPT<char, UserInfo, nameFunction, 22, 2, 2>::node u_root = userData.root;
-        BPT<char, UserInfo, nameFunction, 22, 2, 2>::node newNode = findMinIndex(u_root);
-        while (true) {
-            for (int i = 0; i < newNode.len; i++) {
-                if (newNode.key[i].second.isLogin) newNode.key[i].second.isLogin = false;
+        for (int i = 0; i < total; i++) {
+            UserInfo user;
+            userIndex.read(user, changeToPos(i));
+            if (user.isLogin) {
+                user.isLogin = false;
+                userIndex.write(user, changeToPos(i));
             }
-            userData.writeAndCache(newNode);
-            int next_index = newNode.next_index;
-            if (next_index == -1) break;
-            //if (!userData.Cache.find(next_index, newNode)) userData.readAndCache(newNode, next_index);
-            userData.readAndCache(newNode, next_index);
         }
-
     }
 
-    BPT<char, UserInfo, nameFunction, 22, 2, 2>::node findMinIndex(const BPT<char, UserInfo, nameFunction, 22, 2, 2>::node& tmp) {
-        if (tmp.isLeaf) return tmp;
-        int index = tmp.sonPos[0];
-        BPT<char, UserInfo, nameFunction, 22, 2, 2>::node newNode;
-        /*if (!userData.Cache.find(index, newNode)) {
-            userData.readAndCache(newNode, index);
-        }*/
-        userData.readAndCache(newNode, index);
-        return findMinIndex(newNode);
-    }
 };
 
 #endif //TICKETSYSTEM_USERSYSTEM_HPP

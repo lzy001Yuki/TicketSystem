@@ -215,7 +215,7 @@ class StationInfo{
     friend class TrainInfo;
     friend class TicketSystem;
 private:
-    char name[64] = {'\0'};
+    char name[30] = {'\0'};
     int price = 0; // 第一站的票价为0
     int arriveTime = 0;
     int leaveTime = 0;
@@ -276,11 +276,10 @@ class TrainInfo{
 private:
     char trainID[24] = {'\0'};
     int stationNum = 0;
-    //int maxSeatNum = 0;
     char type = '\0';
     Time ini_time;
-    StationInfo stations[102]; // 实际的车站顺序
-    SortStation sortStation[102]; // 按照字典序排序的车站名，便于二分查找
+    StationInfo stations[50]; // 实际的车站顺序
+    SortStation sortStation[50]; // 按照字典序排序的车站名，便于二分查找
     Date date;
     bool isRelease = false;
 public:
@@ -296,7 +295,6 @@ public:
         type = other.type;
         ini_time = other.ini_time;
         date = other.date;
-        //maxSeatNum = other.maxSeatNum;
         for (int i = 0; i < stationNum; i++) {
             stations[i] = other.stations[i];
         }
@@ -432,26 +430,11 @@ private:
     FileSystem<TrainInfo, 2> trainIndex; // 第一个是total_index
     FileSystem<int, 2> deleteIndex; // 删除的train空间回收
 
-
     // index 0-based
     static ll indexToPos(int index) {
         return 2 * sizeof(int) + index * sizeof(TrainInfo);
     }
 
-    // 计算saleDate的时间
-    static int cal_dur(const Date &d) {
-        int sum = 0;
-        for (int i = d.st.month + 1; i < d.en.month; i++) {
-            sum += Month[i];
-        }
-        if (d.st.month != d.en.month) {
-            sum += (Month[d.st.month] - d.st.day + 1);
-            sum += d.en.day;
-        } else {
-            sum += (d.en.day - d.st.day + 1);
-        }
-        return sum;
-    }
     // 发车时间距离st多少天，now是现在的时间，不是这一班车的发车时间
     static int cal_now(const Date &d, const Day &now) {
         int sum = 0;
@@ -544,9 +527,6 @@ private:
             pre_ticket += train_info.stations[k].remainSeats[dur_now];
         }
         int min_ticket = pre_ticket + min;
-        if (min_ticket > train_info.stations[0].remainSeats[0]) {
-            int y = 2;
-        }
         return min_ticket;
     }
     static void query_print(const TrainInfo& train_info, const Day &d, const char* s, const char *t, Yuki::pair<Day, Time> leave, const Yuki::pair<Day, Time> &arrive, const int &p, const int &s_index, const int &t_index) {
@@ -598,7 +578,6 @@ public:
             if (j == 1) {
                 train_info.stations[j].leaveTime = 0;
                 train_info.stations[j].price = 0;
-                //train_info.stations[j].remainSeats = m;
             }
             if (j != 1 && j != n) {
                 train_info.stations[j].price = train_info.stations[j - 1].price + p[j - 2];
@@ -617,7 +596,7 @@ public:
             info_index = allIndex.back();
             allIndex.pop_back();
         }
-        trainData.insert(Yuki::pair<char, int> (i, info_index));
+        trainData.insert(Yuki::pair<char, int>(i, info_index));
         trainIndex.write(train_info, indexToPos(info_index));
         TrainInfo info;
         int in = 2;
@@ -627,8 +606,6 @@ public:
         }
         return 0;
     }
-
-    /// 如果访问了已经删除的列车怎么办 在trainData已经删除了，只是在列车的列表里仍然存在但是会在之后被覆盖掉
     int delete_train(const char *i) {
         TrainInfo d_info;
         int info_index;
@@ -801,7 +778,6 @@ public:
                         mid_start = secTrain.date.st;
                         mid_arrive = showTime(mid_start, secTrain.ini_time, secTrain.stations[m_index].leaveTime);
                     }
-                    //if (mid_arrive.second < arrive_mid.second) continue;
                     Yuki::pair<Day, Time> en_arrive = showTime(mid_start, secTrain.ini_time, en.arriveTime);
                     int all_time = 0;
                     int all_cost = 0;

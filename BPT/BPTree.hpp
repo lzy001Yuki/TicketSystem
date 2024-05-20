@@ -907,8 +907,6 @@ class BPT<char, Value, Function, max_size, info_len, CacheSize>{
     friend class UserManagement;
     typedef Yuki::pair<char, Value> T;
 private:
-    // 在外存中不适用指针，用pos代替
-    //T block[2000];// 用于存储+写入，储存一个数据页
     int root_num = 0;// 记录root的pos
     class node{
         friend class BPT<char, Value, Function, max_size, info_len, CacheSize>;
