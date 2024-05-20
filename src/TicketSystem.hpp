@@ -12,8 +12,8 @@ enum Status{success, pending, refunded};
 class Ticket{
     friend class TicketSystem;
 private:
-    char user[66] = {'\0'};
-    char trainID[66] = {'\0'};
+    char user[24] = {'\0'};
+    char trainID[24] = {'\0'};
     int st = 0;
     int en = 0;
     int num = 0;
