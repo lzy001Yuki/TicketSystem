@@ -86,8 +86,8 @@ public:
 
 class TicketSystem{
 private:
-    BPT<char, Ticket, TicketFunction, 10, 2, 512> Order;
-    BPT<TrainTime, Ticket, TicketFunction, 10, 2, 512> Waiting;
+    BPT<char, Ticket, TicketFunction, 20, 2, 131> Order;
+    BPT<TrainTime, Ticket, TicketFunction, 10, 2, 131> Waiting;
 
     static void update_ticket(TrainInfo &trainInfo, const Ticket& ticket, TrainSystem& train, bool type) {
         int s_index = ticket.st;
@@ -130,7 +130,6 @@ public:
             std::cout<<"-1\n";
             return;
         }
-        //train.trainData.findKV(trainInfo.trainID, trainInfo);
         int s_index = train.findDestination(st, trainInfo, 1, trainInfo.stationNum);
         if (s_index == -1) {
             std::cout<<"-1\n";
@@ -167,7 +166,6 @@ public:
             int p = n * (trainInfo.stations[t_index].price - trainInfo.stations[s_index].price);
             Ticket ticket(u, i, s_index, t_index, n, d, time, success);
             Order.insert(Yuki::pair<char, Ticket> (u, ticket));
-            //train.trainData.update(Yuki::pair<char, TrainInfo> (trainInfo.trainID, trainInfo));
             train.trainIndex.write(trainInfo, TrainSystem::indexToPos(info_index));
             std::cout<<p<<'\n';
         } else {

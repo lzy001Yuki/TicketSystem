@@ -75,7 +75,7 @@ class UserManagement{
     friend class TicketSystem;
 private:
     // 键值对为username--user_info
-    BPT<char, int, nameFunction, 22, 2, 2> userData;
+    BPT<char, int, nameFunction, 22, 2, 256> userData;
     FileSystem<UserInfo, 2> userIndex;
     int total = 0;
 
