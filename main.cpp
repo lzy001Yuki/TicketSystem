@@ -305,8 +305,8 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
 }
 
 int main() {
-    std::freopen("../testcases/basic_6/23.in", "r", stdin);
-    std::freopen("answer.txt", "w", stdout);
+    //std::freopen("../testcases/basic_6/23.in", "r", stdin);
+    //std::freopen("answer.txt", "w", stdout);
     std::ios::sync_with_stdio(false);
     UserManagement userManagement;
     TrainSystem trainSystem;
