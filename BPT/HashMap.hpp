@@ -7,7 +7,7 @@
 // 储存内容:Key--pair<T1, T2> Value--pos(pair在叶子中的位置)
 // 插入一个数字就插入BufferPool里面，如果满了就Pop
 namespace Yuki {
-    template <class Key, class Value, class Function, int CacheSize, int max_size = 1019>
+    template <class Key, class Value, class Function, int CacheSize, int max_size = 101>
     class HashMap {
     private:
         // HashMap里储存每一个HashNode的指针，防止没有默认函数的情况出现
