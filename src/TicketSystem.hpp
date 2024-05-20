@@ -86,8 +86,8 @@ public:
 
 class TicketSystem{
 private:
-    BPT<char, Ticket, TicketFunction, 20, 2, 131> Order;
-    BPT<TrainTime, Ticket, TicketFunction, 10, 2, 131> Waiting;
+    BPT<char, Ticket, TicketFunction, 20, 2, 13> Order;
+    BPT<TrainTime, Ticket, TicketFunction, 10, 2, 13> Waiting;
 
     static void update_ticket(TrainInfo &trainInfo, const Ticket& ticket, TrainSystem& train, bool type) {
         int s_index = ticket.st;
@@ -125,7 +125,7 @@ public:
             return;
         }
         // 即使release时间也可能不符
-        train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
+        if (!train.Buffer.find(info_index, trainInfo)) train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
         if (!trainInfo.isRelease) {
             std::cout<<"-1\n";
             return;
@@ -180,6 +180,7 @@ public:
                 Waiting.insert(Yuki::pair<TrainTime, Ticket> (trainTime, ticket));
             }
         }
+        train.Buffer.insert(info_index, trainInfo);
     }
 
     void query_order(const char *u, UserManagement& user, TrainSystem& train) {
@@ -235,7 +236,7 @@ public:
         TrainInfo trainInfo;
         int info_index;
         train.trainData.findKV(refund.trainID, info_index);
-        train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
+        if (!train.Buffer.find(info_index, trainInfo)) train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
         int index = refund.st;
         Day st_day = TrainSystem::checkBegin(refund.day, trainInfo.ini_time, trainInfo.stations[index].leaveTime);
         TrainTime re_train(refund.trainID, st_day);
@@ -266,6 +267,7 @@ public:
         refund.status = refunded;
         Order.update(Yuki::pair<char, Ticket> (u, refund));
         train.trainIndex.write(trainInfo, TrainSystem::indexToPos(info_index));
+        train.Buffer.insert(info_index, trainInfo);
     }
 
     static void clean() {
