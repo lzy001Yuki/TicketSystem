@@ -265,7 +265,7 @@ public:
                 }
             }
         }
-        train.trainData.update(Yuki::pair<char, TrainInfo> (trainInfo.trainID, trainInfo));
+        //train.trainData.update(Yuki::pair<char, TrainInfo> (trainInfo.trainID, trainInfo));
         refund.status = refunded;
         Order.update(Yuki::pair<char, Ticket> (u, refund));
         train.trainIndex.write(trainInfo, TrainSystem::indexToPos(info_index));
