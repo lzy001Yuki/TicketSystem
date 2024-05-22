@@ -12,7 +12,6 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
     TokenScanner::SplitString(line, parse);
     if (parse.empty()) return true;
     std::string timeStamp = parse[0];
-    //if (parse.size() == 1) throw InvalidExp();
     std::string cmd = parse[1];
     std::cout<<timeStamp<<' ';
 
@@ -305,8 +304,8 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
 }
 
 int main() {
-    //std::freopen("../testcases/pressure_2_easy/55.in", "r", stdin);
-    //std::freopen("answer.txt", "w", stdout);
+    std::freopen("../testcases/pressure_2_easy/55.in", "r", stdin);
+    std::freopen("answer.txt", "w", stdout);
     std::ios::sync_with_stdio(false);
     UserManagement userManagement;
     TrainSystem trainSystem;
