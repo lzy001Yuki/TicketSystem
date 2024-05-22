@@ -126,13 +126,16 @@ public:
         }
         // 即使release时间也可能不符
         //if (!train.Buffer.find(info_index, trainInfo))
-        train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
+            train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
         if (!trainInfo.isRelease) {
             std::cout<<"-1\n";
             return;
         }
-        int s_index = train.findDestination(st, trainInfo, 1, trainInfo.stationNum);
-        if (s_index == -1) {
+        int s_index = 1;
+        for (; s_index <= trainInfo.stationNum; s_index++) {
+            if (strcmp(st, trainInfo.stations[s_index].name) == 0) break;
+        }
+        if (s_index == trainInfo.stationNum + 1) {
             std::cout<<"-1\n";
             return;
         }
@@ -143,8 +146,11 @@ public:
             std::cout<<"-1\n";
             return;
         }
-        int t_index = train.findDestination(en, trainInfo, 1, trainInfo.stationNum);
-        if (t_index == -1) {
+        int t_index = s_index + 1;
+        for (; t_index <= trainInfo.stationNum; t_index++) {
+            if (strcmp(en, trainInfo.stations[t_index].name) == 0) break;
+        }
+        if (t_index == trainInfo.stationNum + 1) {
             std::cout<<"-1\n";
             return;
         }

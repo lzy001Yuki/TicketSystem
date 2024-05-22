@@ -17,7 +17,10 @@ private:
     int hour = -1;
     int minute = -1;
 public:
-    Time() = default;
+    Time() {
+        hour = -1;
+        minute = -1;
+    }
     explicit Time(int h, int m) :hour(h), minute(m){}
     std::string change(int num) const {
         std::string ans;
@@ -76,7 +79,10 @@ private:
     int month = -1;
     int day = -1;
 public:
-    Day() = default;
+    Day() {
+        month = -1;
+        day = -1;
+    }
     explicit Day(int m, int d) : month(m), day(d){}
     std::string change(int num, bool flag = true) const {
         std::string ans;
@@ -104,6 +110,12 @@ public:
     }
     bool operator != (const Day &other) const {
         return !(*this == other);
+    }
+    Day &operator=(const Day &other) {
+        if (this == &other) return *this;
+        month = other.month;
+        day = other.day;
+        return *this;
     }
 
     int operator-(Day &other) const {
@@ -163,6 +175,12 @@ public:
         }
         return true;
     }
+    Date& operator=(const Date &other) {
+        if (this == &other) return *this;
+        st = other.st;
+        en = other.en;
+        return *this;
+    }
 };
 class StationInfo{
     friend class TrainSystem;
@@ -209,7 +227,7 @@ public:
         else return false;
     }
 };
-class SortStation{
+/*class SortStation{
     // 方式：先找到起点和终点，再利用差分数组修改stations里面的seat数
     friend class TrainInfo;
     friend class TrainSystem;
@@ -231,7 +249,7 @@ public:
         if (strcmp(stationName, other.stationName) < 0) return true;
         else return false;
     }
-};
+};*/
 class TrainInfo{
     friend class TrainSystem;
     friend class timeComp;
@@ -244,11 +262,11 @@ private:
     char type = '\0';
     Time ini_time;
     StationInfo stations[30]; // 实际的车站顺序
-    SortStation sortStation[30]; // 按照字典序排序的车站名，便于二分查找
+    //SortStation sortStation[30]; // 按照字典序排序的车站名，便于二分查找
     Date date;
     bool isRelease = false;
 public:
-    TrainInfo() = default;
+    TrainInfo(){}
     explicit TrainInfo(const char* id, int n, char t, Date date_, Time time, bool flag) :stationNum(n), type(t),date(date_), ini_time(time), isRelease(flag) {
         strcpy(trainID, id);
     }
@@ -262,9 +280,9 @@ public:
             stations[i] = other.stations[i];
         }
         isRelease = other.isRelease;
-        for (int i = 0; i <= stationNum; i++) {
+        /*for (int i = 0; i <= stationNum; i++) {
             sortStation[i] = other.sortStation[i];
-        }
+        }*/
     }
 
     TrainInfo& operator=(const TrainInfo& other) {
@@ -278,9 +296,9 @@ public:
             stations[i] = other.stations[i];
         }
         isRelease = other.isRelease;
-        for (int i = 0; i <= stationNum; i++) {
+        /*for (int i = 0; i <= stationNum; i++) {
             sortStation[i] = other.sortStation[i];
-        }
+        }*/
         return *this;
     }
     bool operator==(const TrainInfo& other) {
@@ -345,7 +363,7 @@ public:
 class TrainFunction{
 public:
     int operator() (const int &num) {
-        return num * 13;
+        return num % 101 ;
     }
 };
 template <class T, class cmp = std::less<T>>
@@ -460,8 +478,7 @@ private:
     FileSystem<int, 2> deleteIndex; // 删除的train空间回收
     //Yuki::HashMap<int, TrainInfo, TrainFunction, 50, 100> Buffer;
     // index 0-based
-    TrainInfo Buffer[100];
-    int bf_size = 0;
+    TrainFunction fun;
     static ll indexToPos(int index) {
         return 2 * sizeof(int) + index * sizeof(TrainInfo);
     }
@@ -562,13 +579,13 @@ private:
         std::cout<<t<<' '<<arrive.first<<' '<<arrive.second<<' '<<p<<' ';
         std::cout<<cal_ticket(train_info, d, s_index, t_index)<<'\n';
     }
-    int findDestination(const char obj[],const TrainInfo &key, int l, int r) {
+    /*int findDestination(const char obj[],const TrainInfo &key, int l, int r) {
         if (l > r) return -1;
         int mid = (l + r) / 2;
         if (strcmp(obj, key.sortStation[mid].stationName) < 0) return findDestination(obj, key, l, mid - 1);
         else if (strcmp(obj, key.sortStation[mid].stationName) == 0) return key.sortStation[mid].index;
         else return findDestination(obj, key, mid + 1, r);
-    }
+    }*/
 public:
     // 考虑stationData是否可以变为<char, char>
     TrainSystem(): trainData("train.txt", "space_train.txt"), stationData("station.txt", "space_station.txt"){
@@ -601,8 +618,8 @@ public:
         train_info.stations[0].remainSeats[0] = m;
         for (int j = 1; j <= n; j++) {
             strcpy(train_info.stations[j].name, s[j - 1].c_str());
-            strcpy(train_info.sortStation[j].stationName, s[j - 1].c_str());
-            train_info.sortStation[j].index = j;
+            //strcpy(train_info.sortStation[j].stationName, s[j - 1].c_str());
+            //train_info.sortStation[j].index = j;
             if (j == 1) {
                 train_info.stations[j].leaveTime = 0;
                 train_info.stations[j].price = 0;
@@ -617,8 +634,8 @@ public:
                 train_info.stations[n].arriveTime = (train_info.stations[n - 1].leaveTime + t[n - 2]);
             }
         }
-        Sort<SortStation, std::less<SortStation>> sort;
-        sort.mergeSort(train_info.sortStation, 1, n);
+        //Sort<SortStation, std::less<SortStation>> sort;
+        //sort.mergeSort(train_info.sortStation, 1, n);
         if (allIndex.empty()) info_index = total_index++;
         else {
             info_index = allIndex.back();
@@ -645,7 +662,6 @@ public:
             //Buffer.erase(info_index);
             allIndex.push_back(info_index);
         }
-        //Buffer.insert(info_index, d_info);
         return 0;
     }
     int release_train(const char* i) {
@@ -713,14 +729,22 @@ public:
             // 二分查找看目的地是否存在，利用sortStation
             TrainInfo objTrain;
             //if (!Buffer.find(all[i], objTrain))
-            trainIndex.read(objTrain, indexToPos(all[i]));
-            int res = findDestination(s, objTrain, 1, objTrain.stationNum);
+                trainIndex.read(objTrain, indexToPos(all[i]));
+            //int res = findDestination(s, objTrain, 1, objTrain.stationNum);
+            int res = 1;
+            for (; res <= objTrain.stationNum; res++) {
+                if (strcmp(s, objTrain.stations[res].name) == 0) break;
+            }
             StationInfo st = objTrain.stations[res];
             Day earliest(showTime(objTrain.date.st, objTrain.ini_time, st.leaveTime).first);
             Day latest(showTime(objTrain.date.en, objTrain.ini_time, st.leaveTime).first);
             Date dur(earliest, latest);
             if (!dur.check(d)) continue; // 不在发车时间段内
-            int ans = findDestination(t, objTrain, 1, objTrain.stationNum);
+            int ans = 1;
+            for (; ans <= objTrain.stationNum; ans++) {
+                if (strcmp(t, objTrain.stations[ans].name) == 0) break;
+            }
+            if (ans == objTrain.stationNum + 1 || res == objTrain.stationNum + 1) continue;
             if (res > ans) continue;
             if (ans != -1) {
                 // 读取真正的trainInfo
@@ -760,8 +784,11 @@ public:
         for (int i = 0; i < all.size(); i++) {
             TrainInfo firTrain;
             //if (!Buffer.find(all[i], firTrain))
-            trainIndex.read(firTrain, indexToPos(all[i]));
-            int res = findDestination(s, firTrain, 1, firTrain.stationNum);// all[i]车次的第res站
+                trainIndex.read(firTrain, indexToPos(all[i]));
+            int res = 1;
+            for (; res <= firTrain.stationNum; res++) {
+                if (strcmp(s, firTrain.stations[res].name) == 0) break;
+            }
             StationInfo st = firTrain.stations[res];// 始发站信息
             Day start_time = checkBegin(d, firTrain.ini_time, st.leaveTime);
             if (!firTrain.date.check(start_time)) continue;
@@ -775,11 +802,17 @@ public:
                 for (int k = 0; k < mid_all.size(); k++) {
                     TrainInfo secTrain;
                     //if (!Buffer.find(mid_all[k], secTrain))
-                    trainIndex.read(secTrain, indexToPos(mid_all[k]));
+                        trainIndex.read(secTrain, indexToPos(mid_all[k]));
                     if (secTrain == firTrain) continue;// 不能是同一辆车
-                    int end = findDestination(t, secTrain, 1, secTrain.stationNum);
-                    if (end == -1) continue;
-                    int m_index = findDestination(mid.name, secTrain, 1, secTrain.stationNum);
+                    int m_index = 1;
+                    for (; m_index <= secTrain.stationNum; m_index++) {
+                        if (strcmp(mid.name, secTrain.stations[m_index].name) == 0) break;
+                    }
+                    int end = m_index + 1;
+                    for (; end <= secTrain.stationNum; end++) {
+                        if (strcmp(t, secTrain.stations[end].name) == 0) break;
+                    }
+                    if (end == secTrain.stationNum + 1) continue;
                     if (m_index >= end) continue;
                     // 在到达后继续换乘
                     StationInfo en = secTrain.stations[end];

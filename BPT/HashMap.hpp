@@ -30,7 +30,7 @@ namespace Yuki {
 
         typedef HashNode node;
         node **array = nullptr;
-        Yuki::queue <Key> q;
+        //Yuki::queue <Key> q;
         Function fun;
         int size = 0;
     public:
@@ -77,7 +77,7 @@ namespace Yuki {
             if (all == nullptr) {
                 array[pos] = new node(key, value);
                 size++;
-                q.insert(key);
+                //q.insert(key);
                 return Pop;
             }
             if (all->next == nullptr) {
@@ -86,7 +86,7 @@ namespace Yuki {
                     return Pop;
                 }
                 all->next = new node(key, value);
-                q.insert(key);
+                //q.insert(key);
             } else {
                 while (all->next != nullptr) {
                     if (all->key == key) {
@@ -100,7 +100,7 @@ namespace Yuki {
                     return Pop;
                 } else {
                     all->next = new node(key, value);
-                    q.insert(key);
+                    //q.insert(key);
                 }
             }
             size++;
@@ -116,7 +116,7 @@ namespace Yuki {
             if (all == nullptr) return;
             if (array[pos]->key == key) {
                 node *nxt = array[pos]->next;
-                q.erase(key);
+                //q.erase(key);
                 delete array[pos];
                 array[pos] = nxt;
                 return;
@@ -126,7 +126,7 @@ namespace Yuki {
                     node *del = all->next;
                     all->next = del->next;
                     delete del;
-                    q.erase(key);
+                    //q.erase(key);
                     size--;
                     return;
                 }
@@ -152,17 +152,17 @@ namespace Yuki {
         int size_() { return size; }
 
         Value pop(Key &num) {
-            if (!q.empty()) num = q.front();
-            Value obj;
-            int pos = fun(num) % max_size;
-            node *all = array[pos];
-            while (all != nullptr) {
-                if (all->key == num) {
-                    size--;
-                    return all->value;
-                }
-                all = all->next;
+            int i = 0;
+            for (; i < max_size; i++) {
+                if (array[i] != nullptr) break;
             }
+            num = array[i]->key;
+            Value v = array[i]->value;
+            node *nxt = array[i]->next;
+            node *tmp = array[i];
+            delete tmp;
+            array[i] = nxt;
+            return v;
         }
 
 
