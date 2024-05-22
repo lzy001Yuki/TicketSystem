@@ -238,7 +238,7 @@ private:
     int stationNum = 0;
     char type = '\0';
     Time ini_time;
-    StationInfo stations[20]; // 实际的车站顺序
+    StationInfo stations[23]; // 实际的车站顺序
     Date date;
     bool isRelease = false;
 public:
