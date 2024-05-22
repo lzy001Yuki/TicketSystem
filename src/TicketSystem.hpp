@@ -51,7 +51,7 @@ public:
 class TrainTime{
     friend class TicketSystem;
 private:
-    char trainID[66] = {'\0'};
+    char trainID[24] = {'\0'};
     Day day;/// 注意应该是发车时间！！！
 public:
     TrainTime() = default;

@@ -243,8 +243,8 @@ private:
     int stationNum = 0;
     char type = '\0';
     Time ini_time;
-    StationInfo stations[50]; // 实际的车站顺序
-    SortStation sortStation[50]; // 按照字典序排序的车站名，便于二分查找
+    StationInfo stations[30]; // 实际的车站顺序
+    SortStation sortStation[30]; // 按照字典序排序的车站名，便于二分查找
     Date date;
     bool isRelease = false;
 public:
@@ -460,6 +460,8 @@ private:
     FileSystem<int, 2> deleteIndex; // 删除的train空间回收
     //Yuki::HashMap<int, TrainInfo, TrainFunction, 50, 100> Buffer;
     // index 0-based
+    TrainInfo Buffer[1000];
+    int bf_size = 0;
     static ll indexToPos(int index) {
         return 2 * sizeof(int) + index * sizeof(TrainInfo);
     }
