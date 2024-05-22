@@ -460,7 +460,7 @@ private:
     FileSystem<int, 2> deleteIndex; // 删除的train空间回收
     //Yuki::HashMap<int, TrainInfo, TrainFunction, 50, 100> Buffer;
     // index 0-based
-    TrainInfo Buffer[1000];
+    TrainInfo Buffer[100];
     int bf_size = 0;
     static ll indexToPos(int index) {
         return 2 * sizeof(int) + index * sizeof(TrainInfo);
