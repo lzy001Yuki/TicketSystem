@@ -227,29 +227,6 @@ public:
         else return false;
     }
 };
-/*class SortStation{
-    // 方式：先找到起点和终点，再利用差分数组修改stations里面的seat数
-    friend class TrainInfo;
-    friend class TrainSystem;
-private:
-    int index = 0;// 是第i站
-    char stationName[30] = {'\0'};
-public:
-    SortStation() = default;
-    explicit SortStation(const int i, const char *n) :index(i) {
-        strcpy(stationName, n);
-    }
-    SortStation& operator=(const SortStation& other) {
-        if (this == &other) return *this;
-        index = other.index;
-        strcpy(stationName, other.stationName);
-        return *this;
-    }
-    bool operator<(const SortStation& other) const {
-        if (strcmp(stationName, other.stationName) < 0) return true;
-        else return false;
-    }
-};*/
 class TrainInfo{
     friend class TrainSystem;
     friend class timeComp;
@@ -262,7 +239,6 @@ private:
     char type = '\0';
     Time ini_time;
     StationInfo stations[30]; // 实际的车站顺序
-    //SortStation sortStation[30]; // 按照字典序排序的车站名，便于二分查找
     Date date;
     bool isRelease = false;
 public:
@@ -280,9 +256,6 @@ public:
             stations[i] = other.stations[i];
         }
         isRelease = other.isRelease;
-        /*for (int i = 0; i <= stationNum; i++) {
-            sortStation[i] = other.sortStation[i];
-        }*/
     }
 
     TrainInfo& operator=(const TrainInfo& other) {
@@ -296,9 +269,6 @@ public:
             stations[i] = other.stations[i];
         }
         isRelease = other.isRelease;
-        /*for (int i = 0; i <= stationNum; i++) {
-            sortStation[i] = other.sortStation[i];
-        }*/
         return *this;
     }
     bool operator==(const TrainInfo& other) {
@@ -476,7 +446,7 @@ private:
     Yuki::vector<int> allIndex;
     FileSystem<TrainInfo, 2> trainIndex; // 第一个是total_index
     FileSystem<int, 2> deleteIndex; // 删除的train空间回收
-    //Yuki::HashMap<int, TrainInfo, TrainFunction, 50, 100> Buffer;
+    Yuki::HashMap<int, TrainInfo, TrainFunction, 50, 100> Buffer;
     // index 0-based
     TrainFunction fun;
     static ll indexToPos(int index) {
@@ -606,7 +576,7 @@ public:
         for (int i = 0; i < allIndex.size(); i++) {
             deleteIndex.write(allIndex[i], 2 * sizeof(int) + i * sizeof(int));
         }
-        //Buffer.clearing(trainIndex, 2);
+        Buffer.clearing(trainIndex, 2);
     }
 
     int add_train(const char* i, int n, int m, const Yuki::vector<string> &s, const Yuki::vector<int> &p, Time x, const Yuki::vector<int> &t, const Yuki::vector<int> &o, const Date &d, char y) {
@@ -618,8 +588,6 @@ public:
         train_info.stations[0].remainSeats[0] = m;
         for (int j = 1; j <= n; j++) {
             strcpy(train_info.stations[j].name, s[j - 1].c_str());
-            //strcpy(train_info.sortStation[j].stationName, s[j - 1].c_str());
-            //train_info.sortStation[j].index = j;
             if (j == 1) {
                 train_info.stations[j].leaveTime = 0;
                 train_info.stations[j].price = 0;
@@ -643,7 +611,7 @@ public:
         }
         trainData.insert(Yuki::pair<char, int>(i, info_index));
         trainIndex.write(train_info, indexToPos(info_index));
-        //Buffer.insert(info_index, train_info);
+        Buffer.insert(info_index, train_info);
         return 0;
     }
     int delete_train(const char *i) {
@@ -651,7 +619,7 @@ public:
         int info_index;
         bool exist = trainData.findKV(i, info_index);
         if (!exist) return -1;
-        //if (!Buffer.find(info_index, d_info))
+        if (!Buffer.find(info_index, d_info))
         trainIndex.read(d_info, indexToPos(info_index));
         if (d_info.isRelease) return -1;
         else {
@@ -659,7 +627,7 @@ public:
                 stationData.erase(Yuki::pair<char, int> (d_info.stations[j].name, info_index));
             }
             trainData.erase(Yuki::pair<char, int> (i, info_index));
-            //Buffer.erase(info_index);
+            Buffer.erase(info_index);
             allIndex.push_back(info_index);
         }
         return 0;
@@ -669,7 +637,7 @@ public:
         int info_index;
         bool exist = trainData.findKV(i, info_index);
         if (!exist) return -1;
-        //if (!Buffer.find(info_index, r_info))
+        if (!Buffer.find(info_index, r_info))
         trainIndex.read(r_info, indexToPos(info_index));
         if (r_info.isRelease) return -1;
         r_info.isRelease = true;
@@ -677,7 +645,7 @@ public:
         for (int j = 1; j <= r_info.stationNum; j++) {
             stationData.insert(Yuki::pair<char, int> (r_info.stations[j].name, info_index));
         }
-        //Buffer.insert(info_index, r_info);
+        Buffer.insert(info_index, r_info);
         return 0;
     }
     Yuki::pair<TrainInfo, bool> query_train(const char *i, Day& day) {
@@ -685,10 +653,10 @@ public:
         int info_index;
         bool exist = trainData.findKV(i, info_index);
         if (!exist) return {q_info, false};
-        //if (!Buffer.find(info_index, q_info))
+        if (!Buffer.find(info_index, q_info))
         trainIndex.read(q_info, indexToPos(info_index));
         bool isDue = q_info.date.check(day);
-        //Buffer.insert(info_index, q_info);
+        Buffer.insert(info_index, q_info);
         if (!isDue) return {q_info, false};
         return {q_info, true};
     }
@@ -728,9 +696,8 @@ public:
         for (int i = 0; i < all.size(); i++) {
             // 二分查找看目的地是否存在，利用sortStation
             TrainInfo objTrain;
-            //if (!Buffer.find(all[i], objTrain))
+            if (!Buffer.find(all[i], objTrain))
                 trainIndex.read(objTrain, indexToPos(all[i]));
-            //int res = findDestination(s, objTrain, 1, objTrain.stationNum);
             int res = 1;
             for (; res <= objTrain.stationNum; res++) {
                 if (strcmp(s, objTrain.stations[res].name) == 0) break;
@@ -783,7 +750,7 @@ public:
         bool f = false;
         for (int i = 0; i < all.size(); i++) {
             TrainInfo firTrain;
-            //if (!Buffer.find(all[i], firTrain))
+            if (!Buffer.find(all[i], firTrain))
                 trainIndex.read(firTrain, indexToPos(all[i]));
             int res = 1;
             for (; res <= firTrain.stationNum; res++) {
@@ -801,7 +768,7 @@ public:
                 Yuki::vector<int> mid_all = stationData.find(mid.name);
                 for (int k = 0; k < mid_all.size(); k++) {
                     TrainInfo secTrain;
-                    //if (!Buffer.find(mid_all[k], secTrain))
+                    if (!Buffer.find(mid_all[k], secTrain))
                         trainIndex.read(secTrain, indexToPos(mid_all[k]));
                     if (secTrain == firTrain) continue;// 不能是同一辆车
                     int m_index = 1;
