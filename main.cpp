@@ -22,10 +22,10 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
     }
 
     if (cmd == "add_user") {
-        char cur_name[66] = {'\0'};
-        char user[66] = {'\0'};
+        char cur_name[25] = {'\0'};
+        char user[25] = {'\0'};
         char pw[32] = {'\0'};
-        char name[66] = {'\0'};
+        char name[25] = {'\0'};
         char mail[32] = {'\0'};
         int pri = -1;
         int pos = 2;
@@ -59,7 +59,7 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
         else std::cout<<userSystem.addUser(cur_name, user, pw, name, mail, pri)<<'\n';
     } else if (cmd == "login") {
         //if (parse.size() != 6) throw InvalidExp();
-        char name[66] = {'\0'};
+        char name[25] = {'\0'};
         char pw[32] = {'\0'};
         int pos = 2;
         while (pos < parse.size()) {
@@ -76,15 +76,15 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
         std::cout<<userSystem.logIn(name, pw)<<'\n';
     } else if (cmd == "logout") {
         //if (parse.size() != 4) throw InvalidExp();
-        char name[66] = {'\0'};
+        char name[25] = {'\0'};
         //if (!TokenScanner::checkUser(parse[3])) throw InvalidExp();
         strcpy(name, parse[3].c_str());
         std::cout<<userSystem.logOut(name)<<'\n';
     } else if (cmd == "query_profile") {
         //if (parse.size() != 6) throw InvalidExp();
         int pos = 2;
-        char name[66] = {'\0'};
-        char user[66] = {'\0'};
+        char name[25] = {'\0'};
+        char user[25] = {'\0'};
         while (pos < parse.size()) {
             if (parse[pos] == "-c") {
                 //if (!TokenScanner::checkUser(parse[pos + 1])) throw InvalidExp();
@@ -100,10 +100,10 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
         if (!ans.second) std::cout<<"-1\n";
         else std::cout<<ans.first;
     } else if (cmd == "modify_profile") {
-        char cur_name[66] = {'\0'};
-        char user[66] = {'\0'};
+        char cur_name[25] = {'\0'};
+        char user[25] = {'\0'};
         char pw[32] = {'\0'};
-        char name[66] = {'\0'};
+        char name[25] = {'\0'};
         char mail[32] = {'\0'};
         int pri = -1;
         int pos = 2;
@@ -220,8 +220,8 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
         strcpy(id, parse[3].c_str());
         std::cout<<trainSystem.release_train(id)<<'\n';
     } else if (cmd == "query_ticket" || cmd == "query_transfer") {
-        char st[66] = {'\0'};
-        char en[66] = {'\0'};
+        char st[25] = {'\0'};
+        char en[25] = {'\0'};
         Day day;
         bool flag;
         int pos = 2;
@@ -245,8 +245,8 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
         char u[24] = {'\0'};
         char id[22] = {'\0'};
         Day day;
-        char st[66] = {'\0'};
-        char en[66] = {'\0'};
+        char st[25] = {'\0'};
+        char en[25] = {'\0'};
         int n;
         bool flag = false;
         int pos = 2;

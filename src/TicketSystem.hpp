@@ -86,7 +86,7 @@ public:
 
 class TicketSystem{
 private:
-    BPT<char, Ticket, TicketFunction, 20, 2, 13> Order;
+    BPT<char, Ticket, TicketFunction, 20, 2, 512> Order;
     BPT<TrainTime, Ticket, TicketFunction, 10, 2, 13> Waiting;
 
     static void update_ticket(TrainInfo &trainInfo, const Ticket& ticket, TrainSystem& train, bool type) {

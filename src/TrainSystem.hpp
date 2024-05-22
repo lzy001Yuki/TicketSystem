@@ -191,8 +191,6 @@ private:
     int price = 0; // 第一站的票价为0
     int arriveTime = 0;
     int leaveTime = 0;
-    /// 如果买票，不会减去终点站的票数
-    /// 需要储存每一班的票数（以发车的第一次为基准）
     int remainSeats[100] = {0}; // 对seats利用差分数组
 public:
     StationInfo() = default;
@@ -439,16 +437,15 @@ class TrainSystem{
     friend class TokenScanner;
 private:
     // trainId在trainIndex里对应index的位置
-    BPT<char, int, TrainFunction, 20, 2, 1024> trainData;
+    BPT<char, int, TrainFunction, 20, 2, 512> trainData;
     // <station, index> station里面的所有trainId的index
-    BPT<char, int, TrainFunction, 20, 2, 1024> stationData; // 管理的是release 以后的车次
+    BPT<char, int, TrainFunction, 20, 2, 512> stationData; // 管理的是release 以后的车次
     int total_index = 0;
     Yuki::vector<int> allIndex;
     FileSystem<TrainInfo, 2> trainIndex; // 第一个是total_index
     FileSystem<int, 2> deleteIndex; // 删除的train空间回收
-    Yuki::HashMap<int, TrainInfo, TrainFunction, 50, 100> Buffer;
+    Yuki::HashMap<int, TrainInfo, TrainFunction, 53, 53> Buffer;
     // index 0-based
-    TrainFunction fun;
     static ll indexToPos(int index) {
         return 2 * sizeof(int) + index * sizeof(TrainInfo);
     }
