@@ -124,6 +124,7 @@ public:
             return -1;
         }
         userData.insert(Yuki::pair<char, int> (new_user, total));
+        userIndex.write(user_info, changeToPos(total));
         //Buffer.insert(total, user_info, userIndex, 2, false);
         //Buffer.insert(info_index, cur_info, userIndex, 2, false);
         total++;
@@ -208,9 +209,10 @@ public:
         if (n[0] != '\0') strcpy(query_user.name, n);
         if (mail[0] != '\0') strcpy(query_user.mailAddr, mail);
         if (p != -1) query_user.privilege = p;
-        //userIndex.write(query_user, changeToPos(q_index));
+        userIndex.write(query_user, changeToPos(q_index));
         //Buffer.insert(cur_index, cur_user, userIndex, 2, false);
         //Buffer.insert(q_index, query_user, userIndex, 2, false);
+        //userIndex.write(query_user, changeToPos(q_index));
         return {query_user, true};
     }
     static void clean() {
