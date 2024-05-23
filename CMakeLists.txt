@@ -18,4 +18,6 @@ add_executable(code
         src/TrainSystem.hpp
         src/UserSystem.hpp
         src/TokenScanner.hpp
+        BPT/map.hpp
+        BPT/exceptions.hpp
 )

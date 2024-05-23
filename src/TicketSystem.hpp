@@ -115,7 +115,12 @@ public:
         }
         if (!user.Buffer.find(u_index, userInfo))
         user.userIndex.read(userInfo, UserManagement::changeToPos(u_index));
-        if (!userInfo.isLogin) {
+        /*if (!userInfo.isLogin) {
+            std::cout<<"-1\n";
+            return;
+        }*/
+        auto it = user.LogIn.find(u);
+        if (it == user.LogIn.end()) {
             std::cout<<"-1\n";
             return;
         }
@@ -201,7 +206,12 @@ public:
         }
         if (!user.Buffer.find(u_index, userInfo))
         user.userIndex.read(userInfo, UserManagement::changeToPos(u_index));
-        if (!userInfo.isLogin) {
+        /*if (!userInfo.isLogin) {
+            std::cout<<"-1\n";
+            return;
+        }*/
+        auto it = user.LogIn.find(u);
+        if (it == user.LogIn.end()) {
             std::cout<<"-1\n";
             return;
         }
@@ -240,7 +250,9 @@ public:
         if (!exist) return -1;
         if (!user.Buffer.find(u_index, userInfo))
         user.userIndex.read(userInfo, UserManagement::changeToPos(u_index));
-        if (!userInfo.isLogin) return -1;
+        //if (!userInfo.isLogin) return -1;
+        auto it = user.LogIn.find(u);
+        if (it == user.LogIn.end()) return -1;
         Yuki::vector<Ticket> log = Order.find(u);
         if (n > log.size()) return -1;
         Ticket refund = log[log.size() - n];
