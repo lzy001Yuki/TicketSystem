@@ -444,7 +444,7 @@ private:
     Yuki::vector<int> allIndex;
     FileSystem<TrainInfo, 2> trainIndex; // 第一个是total_index
     FileSystem<int, 2> deleteIndex; // 删除的train空间回收
-    Yuki::HashMap<int, TrainInfo, TrainFunction, 53, 400> Buffer;
+    Yuki::HashMap<int, TrainInfo, TrainFunction, 53, 1000> Buffer;
     // index 0-based
     static ll indexToPos(int index) {
         return 2 * sizeof(int) + index * sizeof(TrainInfo);
