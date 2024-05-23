@@ -437,14 +437,14 @@ class TrainSystem{
     friend class TokenScanner;
 private:
     // trainId在trainIndex里对应index的位置
-    BPT<char, int, TrainFunction, 20, 2, 2048> trainData;
+    BPT<char, int, TrainFunction, 20, 2, 1024> trainData;
     // <station, index> station里面的所有trainId的index
-    BPT<char, int, TrainFunction, 20, 2, 2048> stationData; // 管理的是release 以后的车次
+    BPT<char, int, TrainFunction, 20, 2, 1024> stationData; // 管理的是release 以后的车次
     int total_index = 0;
     Yuki::vector<int> allIndex;
     FileSystem<TrainInfo, 2> trainIndex; // 第一个是total_index
     FileSystem<int, 2> deleteIndex; // 删除的train空间回收
-    Yuki::HashMap<int, TrainInfo, TrainFunction, 53, 400> Buffer;
+    Yuki::HashMap<int, TrainInfo, TrainFunction, 53, 200> Buffer;
     // index 0-based
     static ll indexToPos(int index) {
         return 2 * sizeof(int) + index * sizeof(TrainInfo);
