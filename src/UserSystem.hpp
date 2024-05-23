@@ -14,6 +14,7 @@ private:
     char mailAddr[32] = {'\0'};
     int privilege = -1;
     bool isLogin = false;
+
 public:
     UserInfo() = default;
     explicit UserInfo(const char* un, const char *pw, const char* n, const char* ma, int p, bool flag = false) :privilege(p)
@@ -78,7 +79,7 @@ private:
     BPT<char, int, nameFunction, 22, 2, 1024> userData;
     FileSystem<UserInfo, 2> userIndex;
     int total = 0;
-
+    Yuki::HashMap<int, UserInfo, nameFunction, 53, 1000> Buffer;
     static ll changeToPos(int index) {
         return 2 * sizeof(int) + index * sizeof(UserInfo);
     }
@@ -89,14 +90,14 @@ public:
     }
     ~UserManagement() {
         userIndex.write_info(total, 1);
+        Buffer.clearing(userIndex, 2);
     }
     int addUser(const char* cur_user, const char *new_user, const char *pw, const char *name, const char *mail, int p) {
         if (userData.empty()) {
             UserInfo rootInfo(new_user, pw, name, mail, 10);
             userData.insert(Yuki::pair<char, int>(new_user, total));
             userIndex.write(rootInfo, changeToPos(total));
-            UserInfo other;
-            userIndex.read(other, changeToPos(total));
+            Buffer.insert(total, rootInfo, userIndex, 2, false);
             total++;
             return 0;
         }
@@ -105,6 +106,7 @@ public:
         int info_index;
         bool isHere = userData.findKV(cur_user, info_index);
         if (!isHere) return -1; // cur_name 不存在
+        if (!Buffer.find(info_index, cur_info))
         userIndex.read(cur_info, changeToPos(info_index));
         if (!cur_info.isLogin) return -1; // 当前用户未登录
         if (p > cur_info.privilege) return -1; // 创建用户权限大于当前用户
@@ -117,6 +119,8 @@ public:
         }
         userData.insert(Yuki::pair<char, int> (new_user, total));
         userIndex.write(user_info, changeToPos(total));
+        Buffer.insert(total, user_info, userIndex, 2, false);
+        Buffer.insert(info_index, cur_info, userIndex, 2, false);
         total++;
         return 0;
     }
@@ -126,11 +130,13 @@ public:
         int now_index;
         bool exist = userData.findKV(username, now_index);
         if (!exist) return -1;
+        if (!Buffer.find(now_index, now_user))
         userIndex.read(now_user, changeToPos(now_index));
         if (now_user.isLogin) return -1;
         if (strcmp(password, now_user.password) != 0) return -1;
         now_user.isLogin = true;
         userIndex.write(now_user, changeToPos(now_index));
+        Buffer.insert(now_index, now_user, userIndex, 2, false);
         return 0;
     }
 
@@ -139,10 +145,12 @@ public:
         int now_index;
         bool exist = userData.findKV(username, now_index);
         if (!exist) return -1;
+        if (!Buffer.find(now_index, now_user))
         userIndex.read(now_user, changeToPos(now_index));
         if (!now_user.isLogin) return -1;
         now_user.isLogin = false;
         userIndex.write(now_user, changeToPos(now_index));
+        Buffer.insert(now_index, now_user, userIndex, 2, false);
         return 0;
     }
 
@@ -151,15 +159,19 @@ public:
         int cur_index;
         bool exist = userData.findKV(cur_name, cur_index);
         if (!exist) return {cur_user, false};
+        if (!Buffer.find(cur_index, cur_user))
         userIndex.read(cur_user, changeToPos(cur_index));
         if (!cur_user.isLogin) return {cur_user, false};
         UserInfo query_user;
         int q_index;
         bool exist_ = userData.findKV(username, q_index);
         if (!exist_) return {query_user, false};
+        if (!Buffer.find(q_index, query_user))
         userIndex.read(query_user, changeToPos(q_index));
         if (cur_user.privilege < query_user.privilege) return {query_user, false};
         if (cur_user.privilege == query_user.privilege && strcmp(cur_name, username) != 0) return {query_user, false};
+        Buffer.insert(cur_index, cur_user, userIndex, 2, false);
+        Buffer.insert(q_index, query_user, userIndex, 2, false);
         return {query_user, true};
     }
 
@@ -168,12 +180,14 @@ public:
         int cur_index;
         bool exist = userData.findKV(cur_name, cur_index);
         if (!exist) return {cur_user, false};
+        if (!Buffer.find(cur_index, cur_user))
         userIndex.read(cur_user, changeToPos(cur_index));
         if (!cur_user.isLogin) return {cur_user, false};
         UserInfo query_user;
         int q_index;
         bool exist_ = userData.findKV(username, q_index);
         if (!exist_) return {query_user, false};
+        if (!Buffer.find(q_index, query_user))
         userIndex.read(query_user, changeToPos(q_index));
         if (query_user.privilege > cur_user.privilege) return {cur_user, false};
         if (query_user.privilege == cur_user.privilege && ((strcmp(cur_name, username) != 0) || p >= query_user.privilege) ) return {cur_user, false};
@@ -182,6 +196,8 @@ public:
         if (mail[0] != '\0') strcpy(query_user.mailAddr, mail);
         if (p != -1) query_user.privilege = p;
         userIndex.write(query_user, changeToPos(q_index));
+        Buffer.insert(cur_index, cur_user, userIndex, 2, false);
+        Buffer.insert(q_index, query_user, userIndex, 2, false);
         return {query_user, true};
     }
     static void clean() {
@@ -193,11 +209,13 @@ public:
     void LogTraverse() {
         for (int i = 0; i < total; i++) {
             UserInfo user;
+            if (!Buffer.find(i, user))
             userIndex.read(user, changeToPos(i));
             if (user.isLogin) {
                 user.isLogin = false;
                 userIndex.write(user, changeToPos(i));
             }
+            Buffer.insert(i, user, userIndex, 2, false);
         }
     }
 

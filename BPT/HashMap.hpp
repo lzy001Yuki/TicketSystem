@@ -75,9 +75,6 @@ namespace Yuki {
             } else {
                 if (all->key == key) all->value = value;
                 else {
-                    if (all->key == 1) {
-                        int y = 2;
-                    }
                     if (flag) file.write(all->value, info_len * sizeof(int) + (all->key + 1) * sizeof(Value));
                     else file.write(all->value, info_len * sizeof(int) + all->key * sizeof(Value));
                     all->key = key;
