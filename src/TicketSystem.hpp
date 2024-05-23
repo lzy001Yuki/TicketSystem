@@ -215,6 +215,7 @@ public:
             char tr[66] = {'\0'};
             strcpy(tr, log[i].trainID);
             train.trainData.findKV(log[i].trainID, info_index);
+            if (!train.Buffer.find(info_index, trainInfo))
             train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
             int s_index = log[i].st;
             Day st_day = TrainSystem::checkBegin(log[i].day, trainInfo.ini_time, trainInfo.stations[s_index].leaveTime);

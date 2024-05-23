@@ -79,7 +79,7 @@ private:
     BPT<char, int, nameFunction, 22, 2, 1024> userData;
     FileSystem<UserInfo, 2> userIndex;
     int total = 0;
-    Yuki::HashMap<int, UserInfo, nameFunction, 53, 1000> Buffer;
+    Yuki::HashMap<int, UserInfo, nameFunction, 53, 1001> Buffer;
     static ll changeToPos(int index) {
         return 2 * sizeof(int) + index * sizeof(UserInfo);
     }
