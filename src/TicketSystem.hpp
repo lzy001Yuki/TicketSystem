@@ -187,7 +187,7 @@ public:
                 Waiting.insert(Yuki::pair<TrainTime, Ticket> (trainTime, ticket));
             }
         }
-        //train.Buffer.insert(info_index, trainInfo);
+        //train.Buffer.insert(info_index, trainInfo, train.trainIndex, 2);
     }
 
     void query_order(const char *u, UserManagement& user, TrainSystem& train) {
@@ -275,7 +275,7 @@ public:
         refund.status = refunded;
         Order.update(Yuki::pair<char, Ticket> (u, refund));
         train.trainIndex.write(trainInfo, TrainSystem::indexToPos(info_index));
-        //train.Buffer.insert(info_index, trainInfo);
+        //train.Buffer.insert(info_index, trainInfo, train.trainIndex, 2);
     }
 
     static void clean() {

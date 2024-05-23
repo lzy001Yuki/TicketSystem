@@ -130,10 +130,7 @@ namespace Yuki {
             for (int i = 0; i < max_size; i++) {
                 node *tmp = array[i];
                 if (tmp == nullptr) continue;
-                while (tmp != nullptr) {
-                    file.write(tmp->value, info_len * sizeof(int) + sizeof(Value) * (tmp->key));
-                    tmp = tmp->next;
-                }
+                file.write(tmp->value, info_len * sizeof(int) + sizeof(Value) * (tmp->key));
             }
         }
 

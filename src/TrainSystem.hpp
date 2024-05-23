@@ -444,7 +444,7 @@ private:
     Yuki::vector<int> allIndex;
     FileSystem<TrainInfo, 2> trainIndex; // 第一个是total_index
     FileSystem<int, 2> deleteIndex; // 删除的train空间回收
-    //Yuki::HashMap<int, TrainInfo, TrainFunction, 53, 53> Buffer;
+    //Yuki::HashMap<int, TrainInfo, TrainFunction, 53, 200> Buffer;
     // index 0-based
     static ll indexToPos(int index) {
         return 2 * sizeof(int) + index * sizeof(TrainInfo);
@@ -608,7 +608,7 @@ public:
         }
         trainData.insert(Yuki::pair<char, int>(i, info_index));
         trainIndex.write(train_info, indexToPos(info_index));
-        //Buffer.insert(info_index, train_info);
+        //Buffer.insert(info_index, train_info, trainIndex, 2);
         return 0;
     }
     int delete_train(const char *i) {
@@ -642,7 +642,7 @@ public:
         for (int j = 1; j <= r_info.stationNum; j++) {
             stationData.insert(Yuki::pair<char, int> (r_info.stations[j].name, info_index));
         }
-        //Buffer.insert(info_index, r_info);
+        //Buffer.insert(info_index, r_info, trainIndex, 2);
         return 0;
     }
     Yuki::pair<TrainInfo, bool> query_train(const char *i, Day& day) {
@@ -653,7 +653,7 @@ public:
         //if (!Buffer.find(info_index, q_info))
             trainIndex.read(q_info, indexToPos(info_index));
         bool isDue = q_info.date.check(day);
-        //Buffer.insert(info_index, q_info);
+        //Buffer.insert(info_index, q_info, trainIndex, 2);
         if (!isDue) return {q_info, false};
         return {q_info, true};
     }
