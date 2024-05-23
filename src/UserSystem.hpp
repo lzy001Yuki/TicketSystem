@@ -82,7 +82,7 @@ private:
     BPT<char, int, nameFunction, 22, 2, 1024> userData;
     FileSystem<UserInfo, 2> userIndex;
     int total = 0;
-    Yuki::HashMap<int, UserInfo, nameFunction, 53, 301> Buffer;
+    //Yuki::HashMap<int, UserInfo, nameFunction, 53, 301> Buffer;
     static ll changeToPos(int index) {
         return 2 * sizeof(int) + index * sizeof(UserInfo);
     }
@@ -94,14 +94,14 @@ public:
     }
     ~UserManagement() {
         userIndex.write_info(total, 1);
-        Buffer.clearing(userIndex, 2);
+        //Buffer.clearing(userIndex, 2);
     }
     int addUser(const char* cur_user, const char *new_user, const char *pw, const char *name, const char *mail, int p) {
         if (userData.empty()) {
             UserInfo rootInfo(new_user, pw, name, mail, 10);
             userData.insert(Yuki::pair<char, int>(new_user, total));
             userIndex.write(rootInfo, changeToPos(total));
-            Buffer.insert(total, rootInfo, userIndex, 2, false);
+            //Buffer.insert(total, rootInfo, userIndex, 2, false);
             total++;
             return 0;
         }
@@ -124,7 +124,7 @@ public:
             return -1;
         }
         userData.insert(Yuki::pair<char, int> (new_user, total));
-        Buffer.insert(total, user_info, userIndex, 2, false);
+        //Buffer.insert(total, user_info, userIndex, 2, false);
         //Buffer.insert(info_index, cur_info, userIndex, 2, false);
         total++;
         return 0;
@@ -137,12 +137,12 @@ public:
         if (!exist) return -1;
         auto it = LogIn.find(username);
         if (it != LogIn.end()) return -1;
-        if (!Buffer.find(now_index, now_user))
+        //if (!Buffer.find(now_index, now_user))
             userIndex.read(now_user, changeToPos(now_index));
         //if (now_user.isLogin) return -1;
         if (strcmp(password, now_user.password) != 0) return -1;
         //now_user.isLogin = true;
-        Buffer.insert(now_index, now_user, userIndex, 2, false);
+        //Buffer.insert(now_index, now_user, userIndex, 2, false);
         LogIn.insert(std::pair<std::string, int>(username, now_user.privilege));
         return 0;
     }
@@ -177,12 +177,12 @@ public:
         int q_index;
         bool exist_ = userData.findKV(username, q_index);
         if (!exist_) return {query_user, false};
-        if (!Buffer.find(q_index, query_user))
+        //if (!Buffer.find(q_index, query_user))
             userIndex.read(query_user, changeToPos(q_index));
         if (it->second < query_user.privilege) return {query_user, false};
         if (it->second == query_user.privilege && strcmp(cur_name, username) != 0) return {query_user, false};
         //Buffer.insert(cur_index, cur_user, userIndex, 2, false);
-        Buffer.insert(q_index, query_user, userIndex, 2, false);
+        //Buffer.insert(q_index, query_user, userIndex, 2, false);
         return {query_user, true};
     }
 
@@ -200,7 +200,7 @@ public:
         int q_index;
         bool exist_ = userData.findKV(username, q_index);
         if (!exist_) return {query_user, false};
-        if (!Buffer.find(q_index, query_user))
+        //if (!Buffer.find(q_index, query_user))
             userIndex.read(query_user, changeToPos(q_index));
         if (query_user.privilege > it->second) return {query_user, false};
         if (query_user.privilege == it->second && ((strcmp(cur_name, username) != 0) || p >= query_user.privilege) ) return {query_user, false};
@@ -210,7 +210,7 @@ public:
         if (p != -1) query_user.privilege = p;
         //userIndex.write(query_user, changeToPos(q_index));
         //Buffer.insert(cur_index, cur_user, userIndex, 2, false);
-        Buffer.insert(q_index, query_user, userIndex, 2, false);
+        //Buffer.insert(q_index, query_user, userIndex, 2, false);
         return {query_user, true};
     }
     static void clean() {
