@@ -106,19 +106,6 @@ public:
     TicketSystem(): Order("order.txt", "space_order.txt"), Waiting("waiting.txt", "space_waiting.txt"){}
 
     void buy_ticket(const char *u, const char *i, Day &d, const int &n, const char *st, const char *en, bool flag, UserManagement& user, TrainSystem& train, int time) {
-        UserInfo userInfo;
-        int u_index;
-        bool exist = user.userData.findKV(u, u_index);
-        if (!exist) {
-            std::cout<<"-1\n";
-            return;
-        }
-        if (!user.Buffer.find(u_index, userInfo))
-        user.userIndex.read(userInfo, UserManagement::changeToPos(u_index));
-        /*if (!userInfo.isLogin) {
-            std::cout<<"-1\n";
-            return;
-        }*/
         auto it = user.LogIn.find(u);
         if (it == user.LogIn.end()) {
             std::cout<<"-1\n";

@@ -156,7 +156,7 @@ public:
         //if (!now_user.isLogin) return -1;
         //now_user.isLogin = false;
         //userIndex.write(now_user, changeToPos(now_index));
-        Buffer.insert(now_index, now_user, userIndex, 2, false);
+        //Buffer.insert(now_index, now_user, userIndex, 2, false);
         auto it = LogIn.find(username);
         if (it == LogIn.end()) return -1;
         LogIn.erase(it);

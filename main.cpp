@@ -297,7 +297,7 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
         UserManagement::clean();
         std::cout<<"0\n";
     } else if (cmd == "exit") {
-        userSystem.LogTraverse();
+        //userSystem.LogTraverse();
         std::cout<<"bye\n";
         return false;
     }
@@ -305,7 +305,7 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
 }
 
 int main() {
-    //std::freopen("../testcases/pressure_2_easy/54.in", "r", stdin);
+    //std::freopen("../testcases/basic_5/16.in", "r", stdin);
     //std::freopen("answer.txt", "w", stdout);
     std::ios::sync_with_stdio(false);
     UserManagement userManagement;
