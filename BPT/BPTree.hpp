@@ -4,7 +4,6 @@
 #include"FileSystem.hpp"
 #include"vector.hpp"
 #include"utility.hpp"
-
 #define ll long long
 template<class Key, class Value, class Function,int max_size, int info_len,int CacheSize>
 class BPT{
@@ -96,7 +95,8 @@ private:
     FileSystem<int, 1> spaceFile;
     // 用于查找，减少对页面数据的读取
     // 每次写入文件的时候都插入，否则node可能会更新
-    //Yuki::HashMap<int, node, Function, CacheSize, 5> Cache;
+    //Yuki::HashMap<int, node, Function, CacheSize, 203> Cache;
+
     // Reuse the deleted place, in Merging Operation
     // we can also use it in Insert Operation
     Yuki::vector<int> Reuse;
@@ -991,7 +991,7 @@ private:
     FileSystem<node, info_len> file;// 2个info,暂时先不管
     node root;
     FileSystem<int, 1> spaceFile;
-    Yuki::HashMap<int, node, Function, CacheSize, 2003> Cache;
+    Yuki::HashMap<int, node, Function, CacheSize, 1003> Cache;
     // Reuse the deleted place, in Merging Operation
     // we can also use it in Insert Operation
     Yuki::vector<int> Reuse;
@@ -1004,21 +1004,22 @@ private:
 
     // 没必要每次都写入
     void writeAndCache(node &obj) {
-        /*if (!Cache.insert(obj.index_num, obj)) {
+        if (!Cache.insert(obj.index_num, obj)) {
             int pos = -1;
             node tmp = Cache.pop(pos);
             file.write(tmp, changeToPos(pos));
-        }*/
-        Cache.insert(obj.index_num, obj, file, info_len, true);
+        }
+        //Cache.insert(obj.index_num, obj, file, info_len, true);
         //file.write(obj, changeToPos(obj.index_num));
     }
 
     void readAndCache(node &obj, int index) {
         file.read(obj, changeToPos(index));
-        if (obj.index_num != index) {
-            int y = 2;
+        if (!Cache.insert(obj.index_num, obj)) {
+            int pos = -1;
+            node tmp = Cache.pop(pos);
+            file.write(tmp, changeToPos(pos));
         }
-        Cache.insert(index, obj, file, info_len, true);
     }
 
     // 返回的是新节点的node，或者原来节点+false
