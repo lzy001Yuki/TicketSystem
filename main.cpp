@@ -17,7 +17,7 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
     std::cout<<timeStamp<<' ';
 
     // 检查query_transfer的问题 余票也有问题
-    if (timeStamp == "[218038]") {
+    if (timeStamp == "[177577]") {
         int y = 2;
     }
 

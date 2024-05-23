@@ -64,7 +64,8 @@ namespace Yuki {
         // 判断是否重复插入
         // spilt node
         // 如果存在，覆盖以前的插入
-        void insert(const Key &key, const Value &value, FileSystem<Value> &file, int info_len) {
+        // true -- bpt false -- file
+        void insert(const Key &key, const Value &value, FileSystem<Value> &file, int info_len, bool flag) {
             int pos = fun(key) % max_size;
             node *all = array[pos];
             if (all == nullptr) {
@@ -74,7 +75,11 @@ namespace Yuki {
             } else {
                 if (all->key == key) all->value = value;
                 else {
-                    file.write(all->value, info_len * sizeof(int) + (all->key + 1) * sizeof(Value));
+                    if (all->key == 1) {
+                        int y = 2;
+                    }
+                    if (flag) file.write(all->value, info_len * sizeof(int) + (all->key + 1) * sizeof(Value));
+                    else file.write(all->value, info_len * sizeof(int) + all->key * sizeof(Value));
                     all->key = key;
                     all->value = value;
                 }

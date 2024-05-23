@@ -125,7 +125,7 @@ public:
             return;
         }
         // 即使release时间也可能不符
-        //if (!train.Buffer.find(info_index, trainInfo))
+        if (!train.Buffer.find(info_index, trainInfo))
             train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
         if (!trainInfo.isRelease) {
             std::cout<<"-1\n";
@@ -187,7 +187,7 @@ public:
                 Waiting.insert(Yuki::pair<TrainTime, Ticket> (trainTime, ticket));
             }
         }
-        //train.Buffer.insert(info_index, trainInfo, train.trainIndex, 2);
+        train.Buffer.insert(info_index, trainInfo, train.trainIndex, 2, false);
     }
 
     void query_order(const char *u, UserManagement& user, TrainSystem& train) {
@@ -243,7 +243,7 @@ public:
         TrainInfo trainInfo;
         int info_index;
         train.trainData.findKV(refund.trainID, info_index);
-        //if (!train.Buffer.find(info_index, trainInfo))
+        if (!train.Buffer.find(info_index, trainInfo))
             train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
         int index = refund.st;
         Day st_day = TrainSystem::checkBegin(refund.day, trainInfo.ini_time, trainInfo.stations[index].leaveTime);
@@ -275,7 +275,7 @@ public:
         refund.status = refunded;
         Order.update(Yuki::pair<char, Ticket> (u, refund));
         train.trainIndex.write(trainInfo, TrainSystem::indexToPos(info_index));
-        //train.Buffer.insert(info_index, trainInfo, train.trainIndex, 2);
+        train.Buffer.insert(info_index, trainInfo, train.trainIndex, 2, false);
     }
 
     static void clean() {
