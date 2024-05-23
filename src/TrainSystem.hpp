@@ -682,13 +682,30 @@ public:
     }
     // flag->true  time    false cost
     void query_ticket(const char* s, const char *t, const Day& d, bool flag) {
-        Yuki::vector<int> all;
-        all = stationData.find(s); // 均已经release过
+        Yuki::vector<int> all_st, all_en, all;
+        all_st = stationData.find(s); // 均已经release过
+        all_en = stationData.find(t);
         Yuki::priority_queue<compInfo, timeComp> tq;
         Yuki::priority_queue<compInfo, costComp> cq;
-        if (all.empty()) {
+        if (all_st.empty() || all_en.empty()) {
             std::cout<<"0\n";
             return;
+        }
+        int m = 0, n = 0;
+        while (m < all_st.size() && n < all_en.size()) {
+            if (all_st[m] < all_en[n]) {
+                m++;
+                continue;
+            }
+            if (all_st[m] > all_en[n]) {
+                n++;
+                continue;
+            }
+            if (all_st[m] == all_en[n]) {
+                all.push_back(all_st[m]);
+                m++;
+                n++;
+            }
         }
         for (int i = 0; i < all.size(); i++) {
             // 二分查找看目的地是否存在，利用sortStation
