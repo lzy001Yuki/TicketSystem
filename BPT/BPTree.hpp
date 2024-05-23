@@ -991,7 +991,7 @@ private:
     FileSystem<node, info_len> file;// 2个info,暂时先不管
     node root;
     FileSystem<int, 1> spaceFile;
-    Yuki::HashMap<int, node, Function, CacheSize, 517> Cache;
+    Yuki::HashMap<int, node, Function, CacheSize, 2048> Cache;
     // Reuse the deleted place, in Merging Operation
     // we can also use it in Insert Operation
     Yuki::vector<int> Reuse;
@@ -1004,17 +1004,21 @@ private:
 
     // 没必要每次都写入
     void writeAndCache(node &obj) {
-        if (!Cache.insert(obj.index_num, obj)) {
+        /*if (!Cache.insert(obj.index_num, obj)) {
             int pos = -1;
             node tmp = Cache.pop(pos);
             file.write(tmp, changeToPos(pos));
-        }
+        }*/
+        Cache.insert(obj.index_num, obj, file, info_len);
         //file.write(obj, changeToPos(obj.index_num));
     }
 
     void readAndCache(node &obj, int index) {
         file.read(obj, changeToPos(index));
-        Cache.insert(index, obj);
+        if (obj.index_num != index) {
+            int y = 2;
+        }
+        Cache.insert(index, obj, file, info_len);
     }
 
     // 返回的是新节点的node，或者原来节点+false

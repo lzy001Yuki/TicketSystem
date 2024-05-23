@@ -12,11 +12,12 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
     TokenScanner::SplitString(line, parse);
     if (parse.empty()) return true;
     std::string timeStamp = parse[0];
+    //if (parse.size() == 1) throw InvalidExp();
     std::string cmd = parse[1];
     std::cout<<timeStamp<<' ';
 
     // 检查query_transfer的问题 余票也有问题
-    if (timeStamp == "[896]") {
+    if (timeStamp == "[218038]") {
         int y = 2;
     }
 
@@ -304,7 +305,7 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
 }
 
 int main() {
-    //std::freopen("../testcases/pressure_2_easy/53.in", "r", stdin);
+    //std::freopen("../testcases/pressure_2_easy/56.in", "r", stdin);
     //std::freopen("answer.txt", "w", stdout);
     std::ios::sync_with_stdio(false);
     UserManagement userManagement;

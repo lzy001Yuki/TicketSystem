@@ -5,10 +5,8 @@
 #include"../BPT/vector.hpp"
 #include"../BPT/BPTree.hpp"
 #include"../BPT/priority_queue.hpp"
-#define ll long long
 
 int Month[13] = {0,31,29,31,30,31,30,31,31,30,31,30,31};
-
 class Time{
     friend class Day;
     friend class TrainSystem;
@@ -189,11 +187,11 @@ class StationInfo{
     friend class TrainInfo;
     friend class TicketSystem;
 private:
-    char name[25] = {'\0'};
+    char name[30] = {'\0'};
     int price = 0; // 第一站的票价为0
     int arriveTime = 0;
     int leaveTime = 0;
-    int remainSeats[90] = {0}; // 对seats利用差分数组
+    int remainSeats[100] = {0}; // 对seats利用差分数组
 public:
     StationInfo() = default;
     explicit StationInfo(const char *n, int p, int at, int lt) :price(p), arriveTime(at), leaveTime(lt){
@@ -234,11 +232,11 @@ class TrainInfo{
     friend class TicketSystem;
     friend class TransComp;
 private:
-    char trainID[22] = {'\0'};
+    char trainID[24] = {'\0'};
     int stationNum = 0;
     char type = '\0';
     Time ini_time;
-    StationInfo stations[23]; // 实际的车站顺序
+    StationInfo stations[22]; // 实际的车站顺序
     Date date;
     bool isRelease = false;
 public:
@@ -619,7 +617,7 @@ public:
         bool exist = trainData.findKV(i, info_index);
         if (!exist) return -1;
         //if (!Buffer.find(info_index, d_info))
-        trainIndex.read(d_info, indexToPos(info_index));
+            trainIndex.read(d_info, indexToPos(info_index));
         if (d_info.isRelease) return -1;
         else {
             for (int j = 1; j <= d_info.stationNum; j++) {
@@ -637,7 +635,7 @@ public:
         bool exist = trainData.findKV(i, info_index);
         if (!exist) return -1;
         //if (!Buffer.find(info_index, r_info))
-        trainIndex.read(r_info, indexToPos(info_index));
+            trainIndex.read(r_info, indexToPos(info_index));
         if (r_info.isRelease) return -1;
         r_info.isRelease = true;
         trainIndex.write(r_info, indexToPos(info_index));
@@ -653,7 +651,7 @@ public:
         bool exist = trainData.findKV(i, info_index);
         if (!exist) return {q_info, false};
         //if (!Buffer.find(info_index, q_info))
-        trainIndex.read(q_info, indexToPos(info_index));
+            trainIndex.read(q_info, indexToPos(info_index));
         bool isDue = q_info.date.check(day);
         //Buffer.insert(info_index, q_info);
         if (!isDue) return {q_info, false};
@@ -696,7 +694,7 @@ public:
             // 二分查找看目的地是否存在，利用sortStation
             TrainInfo objTrain;
             //if (!Buffer.find(all[i], objTrain))
-            trainIndex.read(objTrain, indexToPos(all[i]));
+                trainIndex.read(objTrain, indexToPos(all[i]));
             int res = 1;
             for (; res <= objTrain.stationNum; res++) {
                 if (strcmp(s, objTrain.stations[res].name) == 0) break;
@@ -750,7 +748,7 @@ public:
         for (int i = 0; i < all.size(); i++) {
             TrainInfo firTrain;
             //if (!Buffer.find(all[i], firTrain))
-            trainIndex.read(firTrain, indexToPos(all[i]));
+                trainIndex.read(firTrain, indexToPos(all[i]));
             int res = 1;
             for (; res <= firTrain.stationNum; res++) {
                 if (strcmp(s, firTrain.stations[res].name) == 0) break;
@@ -768,7 +766,7 @@ public:
                 for (int k = 0; k < mid_all.size(); k++) {
                     TrainInfo secTrain;
                     //if (!Buffer.find(mid_all[k], secTrain))
-                    trainIndex.read(secTrain, indexToPos(mid_all[k]));
+                        trainIndex.read(secTrain, indexToPos(mid_all[k]));
                     if (secTrain == firTrain) continue;// 不能是同一辆车
                     int m_index = 1;
                     for (; m_index <= secTrain.stationNum; m_index++) {

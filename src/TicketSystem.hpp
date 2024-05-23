@@ -244,7 +244,7 @@ public:
         int info_index;
         train.trainData.findKV(refund.trainID, info_index);
         //if (!train.Buffer.find(info_index, trainInfo))
-        train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
+            train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
         int index = refund.st;
         Day st_day = TrainSystem::checkBegin(refund.day, trainInfo.ini_time, trainInfo.stations[index].leaveTime);
         TrainTime re_train(refund.trainID, st_day);
