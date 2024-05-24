@@ -456,7 +456,7 @@ private:
     // trainId在trainIndex里对应index的位置
     BPT<char, int, TrainFunction, 30, 2, 1024> trainData;
     // <station, index> station里面的所有trainId的index
-    BPT<char, int, TrainFunction, 30, 2, 1024> stationData; // 管理的是release 以后的车次
+    BPT<char, Yuki::pair<int, int>, TrainFunction, 30, 2, 1024> stationData; // 管理的是release 以后的车次
     int total_index = 0;
     Yuki::vector<int> allIndex;
     FileSystem<TrainInfo, 2> trainIndex; // 第一个是total_index
@@ -617,7 +617,7 @@ public:
         if (d_info.isRelease) return -1;
         else {
             for (int j = 1; j <= d_info.stationNum; j++) {
-                stationData.erase(Yuki::pair<char, int> (d_info.stations[j].name, info_index));
+                stationData.erase(Yuki::pair<char, Yuki::pair<int, int>> (d_info.stations[j].name, {info_index, j}));
             }
             trainData.erase(Yuki::pair<char, int> (i, info_index));
             allIndex.push_back(info_index);
@@ -634,7 +634,7 @@ public:
         r_info.isRelease = true;
         trainIndex.write(r_info, indexToPos(info_index));
         for (int j = 1; j <= r_info.stationNum; j++) {
-            stationData.insert(Yuki::pair<char, int> (r_info.stations[j].name, info_index));
+            stationData.insert(Yuki::pair<char, Yuki::pair<int, int>> (r_info.stations[j].name, {info_index, j}));
         }
         return 0;
     }
@@ -675,7 +675,7 @@ public:
     }
     // flag->true  time    false cost
     void query_ticket(const char* s, const char *t, const Day& d, bool flag) {
-        Yuki::vector<int> all_st, all_en, all;
+        Yuki::vector<Yuki::pair<int, int>> all_st, all_en, all;
         all_st = stationData.find(s); // 均已经release过
         all_en = stationData.find(t);
         Yuki::priority_queue<compInfo, timeComp> tq;
@@ -686,38 +686,37 @@ public:
         }
         int m = 0, n = 0;
         while (m < all_st.size() && n < all_en.size()) {
-            if (all_st[m] < all_en[n]) {
+            if (all_st[m].first < all_en[n].first) {
                 m++;
                 continue;
             }
-            if (all_st[m] > all_en[n]) {
+            if (all_st[m].first > all_en[n].first) {
                 n++;
                 continue;
             }
-            if (all_st[m] == all_en[n]) {
+            if (all_st[m].first == all_en[n].first) {
+                if (all_st[m].second >= all_en[n].second) {
+                    m++;
+                    n++;
+                    continue;
+                }
                 all.push_back(all_st[m]);
+                all.push_back(all_en[n]);
                 m++;
                 n++;
             }
         }
-        for (int i = 0; i < all.size(); i++) {
+        for (int i = 0; i < all.size(); i += 2) {
             TrainInfo objTrain;
-            trainIndex.read(objTrain, indexToPos(all[i]));
-            int res = 1;
-            for (; res <= objTrain.stationNum; res++) {
-                if (strcmp(s, objTrain.stations[res].name) == 0) break;
-            }
+            trainIndex.read(objTrain, indexToPos(all[i].first));
+            int res = all[i].second;
             StationInfo st = objTrain.stations[res];
             Day earliest(showTime(objTrain.date.st, objTrain.ini_time, st.leaveTime).first);
             Day latest(showTime(objTrain.date.en, objTrain.ini_time, st.leaveTime).first);
             Date dur(earliest, latest);
             if (!dur.check(d)) continue; // 不在发车时间段内
-            int ans = 1;
-            for (; ans <= objTrain.stationNum; ans++) {
-                if (strcmp(t, objTrain.stations[ans].name) == 0) break;
-            }
+            int ans = all[i + 1].second;
             if (ans == objTrain.stationNum + 1 || res == objTrain.stationNum + 1) continue;
-            if (res > ans) continue;
             if (ans != -1) {
                 int cost = objTrain.stations[ans].price - objTrain.stations[res].price;
                 int time_ = objTrain.stations[ans].arriveTime - objTrain.stations[res].leaveTime;
@@ -748,17 +747,14 @@ public:
         }
     }
     void query_transfer(const char* s, const char *t, const Day& d, bool flag){
-        Yuki::vector<int> all;
+        Yuki::vector<Yuki::pair<int, int>> all;
         all = stationData.find(s);
         TransComp transComp;
         bool f = false;
         for (int i = 0; i < all.size(); i++) {
             TrainInfo firTrain;
-            trainIndex.read(firTrain, indexToPos(all[i]));
-            int res = 1;
-            for (; res <= firTrain.stationNum; res++) {
-                if (strcmp(s, firTrain.stations[res].name) == 0) break;
-            }
+            trainIndex.read(firTrain, indexToPos(all[i].first));
+            int res = all[i].second;
             StationInfo st = firTrain.stations[res];// 始发站信息
             Day start_time = checkBegin(d, firTrain.ini_time, st.leaveTime);
             if (!firTrain.date.check(start_time)) continue;
@@ -768,15 +764,12 @@ public:
                 // 到达中转站的时间
                 Yuki::pair<Day, Time> arrive_mid = showTime(start_time, firTrain.ini_time, mid.arriveTime);
                 // 中转站里的所有车辆信息
-                Yuki::vector<int> mid_all = stationData.find(mid.name);
+                Yuki::vector<Yuki::pair<int, int>> mid_all = stationData.find(mid.name);
                 for (int k = 0; k < mid_all.size(); k++) {
                     TrainInfo secTrain;
-                    trainIndex.read(secTrain, indexToPos(mid_all[k]));
+                    trainIndex.read(secTrain, indexToPos(mid_all[k].first));
                     if (secTrain == firTrain) continue;// 不能是同一辆车
-                    int m_index = 1;
-                    for (; m_index <= secTrain.stationNum; m_index++) {
-                        if (strcmp(mid.name, secTrain.stations[m_index].name) == 0) break;
-                    }
+                    int m_index = mid_all[k].second;
                     int end = m_index + 1;
                     for (; end <= secTrain.stationNum; end++) {
                         if (strcmp(t, secTrain.stations[end].name) == 0) break;
