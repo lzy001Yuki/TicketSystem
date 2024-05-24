@@ -1004,22 +1004,23 @@ private:
 
     // 没必要每次都写入
     void writeAndCache(node &obj) {
-        if (!Cache.insert(obj.index_num, obj)) {
+        /*if (!Cache.insert(obj.index_num, obj)) {
             int pos = -1;
             node tmp = Cache.pop(pos);
             file.write(tmp, changeToPos(pos));
-        }
-        //Cache.insert(obj.index_num, obj, file, info_len, true);
+        }*/
+        Cache.insert(obj.index_num, obj, file, info_len, true);
         //file.write(obj, changeToPos(obj.index_num));
     }
 
     void readAndCache(node &obj, int index) {
         file.read(obj, changeToPos(index));
-        if (!Cache.insert(obj.index_num, obj)) {
+        Cache.insert(index, obj, file, info_len, true);
+        /*if (!Cache.insert(obj.index_num, obj)) {
             int pos = -1;
             node tmp = Cache.pop(pos);
             file.write(tmp, changeToPos(pos));
-        }
+        }*/
     }
 
     // 返回的是新节点的node，或者原来节点+false

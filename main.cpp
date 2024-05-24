@@ -17,7 +17,7 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
     std::cout<<timeStamp<<' ';
 
     // 检查query_transfer的问题 余票也有问题
-    if (timeStamp == "[3743]" || timeStamp == "[3488]") {
+    if (timeStamp == "[5994]") {
         int y = 2;
     }
 
@@ -205,7 +205,7 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
         Yuki::pair<TrainInfo, bool> ans = trainSystem.query_train(id, day);
         if (!ans.second) std::cout<<"-1\n";
         else {
-            TrainSystem::printTrain(day, ans.first);
+            trainSystem.printTrain(day, ans.first);
         }
     } else if (cmd == "delete_train") {
         //if (parse.size() != 4) throw InvalidExp();

@@ -67,7 +67,7 @@ namespace Yuki {
     template<class T2>
     class pair<char, T2>{
     public:
-        char first[66] = {'\0'};
+        char first[30] = {'\0'};
         T2 second;
         pair() = default;
         explicit pair(const char key[], const T2 &value):second(value) {

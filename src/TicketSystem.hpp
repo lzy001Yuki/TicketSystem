@@ -89,17 +89,15 @@ private:
     BPT<char, Ticket, TicketFunction, 20, 2, 1024> Order;
     BPT<TrainTime, Ticket, TicketFunction, 10, 2, 13> Waiting;
 
-    static void update_ticket(TrainInfo &trainInfo, const Ticket& ticket, TrainSystem& train, bool type) {
+     void update_ticket(TrainInfo &trainInfo, const Ticket& ticket, TrainSystem& train, bool type, Seats& seats) {
         int s_index = ticket.st;
         int t_index = ticket.en;
-        Day now = TrainSystem::checkBegin(ticket.day, trainInfo.ini_time, trainInfo.stations[s_index].leaveTime);
-        int dur = TrainSystem::cal_now(trainInfo.date, now);
         if (type) {
-            trainInfo.stations[s_index].remainSeats[dur] += ticket.num;
-            trainInfo.stations[t_index].remainSeats[dur] -= ticket.num;
+            seats.seat[s_index] += ticket.num;
+            seats.seat[t_index] -= ticket.num;
         } else {
-            trainInfo.stations[s_index].remainSeats[dur] -= ticket.num;
-            trainInfo.stations[t_index].remainSeats[dur] += ticket.num;
+            seats.seat[s_index] -= ticket.num;
+            seats.seat[t_index] += ticket.num;
         }
     }
 public:
@@ -118,8 +116,7 @@ public:
             return;
         }
         // 即使release时间也可能不符
-        //if (!train.Buffer.find(info_index, trainInfo))
-            train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
+        train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
         if (!trainInfo.isRelease) {
             std::cout<<"-1\n";
             return;
@@ -152,21 +149,24 @@ public:
             return;
         }
         // 这辆车的始发日期
-        if (n > trainInfo.stations[0].remainSeats[0]) {
+        if (n > trainInfo.maxSeats) {
             std::cout<<"-1\n";
             return;
         }
         Day st_day = TrainSystem::checkBegin(d, trainInfo.ini_time, trainInfo.stations[s_index].leaveTime);
         int dur_time = TrainSystem::cal_now(trainInfo.date, st_day);
-        int seats = TrainSystem::cal_ticket(trainInfo, d, s_index, t_index);
+        Seats s;
+        train.seatsIndex.read(s, sizeof(Seats) * (durMax * trainInfo.index + dur_time));
+        int seats = train.cal_ticket(trainInfo, d, s_index, t_index, s);
         if (seats >= n) {
             // 购票成功
-            trainInfo.stations[s_index].remainSeats[dur_time] -= n;
-            trainInfo.stations[t_index].remainSeats[dur_time] += n;
+            s.seat[s_index] -= n;
+            s.seat[t_index] += n;
             int p = n * (trainInfo.stations[t_index].price - trainInfo.stations[s_index].price);
             Ticket ticket(u, i, s_index, t_index, n, d, time, success);
             Order.insert(Yuki::pair<char, Ticket> (u, ticket));
             train.trainIndex.write(trainInfo, TrainSystem::indexToPos(info_index));
+            train.seatsIndex.write(s, sizeof (Seats) * (durMax * trainInfo.index + dur_time));
             std::cout<<p<<'\n';
         } else {
             if (!flag) {
@@ -180,7 +180,6 @@ public:
                 Waiting.insert(Yuki::pair<TrainTime, Ticket> (trainTime, ticket));
             }
         }
-        //train.Buffer.insert(info_index, trainInfo, train.trainIndex, 2, false);
     }
 
     void query_order(const char *u, UserManagement& user, TrainSystem& train) {
@@ -235,9 +234,7 @@ public:
         int u_index;
         bool exist = user.userData.findKV(u, u_index);
         if (!exist) return -1;
-        //if (!user.Buffer.find(u_index, userInfo))
         user.userIndex.read(userInfo, UserManagement::changeToPos(u_index));
-        //if (!userInfo.isLogin) return -1;
         auto it = user.LogIn.find(u);
         if (it == user.LogIn.end()) return -1;
         Yuki::vector<Ticket> log = Order.find(u);
@@ -246,8 +243,7 @@ public:
         TrainInfo trainInfo;
         int info_index;
         train.trainData.findKV(refund.trainID, info_index);
-        //if (!train.Buffer.find(info_index, trainInfo))
-            train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
+        train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
         int index = refund.st;
         Day st_day = TrainSystem::checkBegin(refund.day, trainInfo.ini_time, trainInfo.stations[index].leaveTime);
         TrainTime re_train(refund.trainID, st_day);
@@ -255,19 +251,22 @@ public:
         if (refund.status == pending) {
             Waiting.erase(Yuki::pair<TrainTime, Ticket> (re_train, refund));
         }
+        int dur = TrainSystem::cal_now(trainInfo.date, st_day);
+        Seats s;
+        train.seatsIndex.read(s, sizeof(Seats) * (durMax * trainInfo.index + dur));
         if (refund.status == success) {
-            update_ticket(trainInfo, refund, train, true);
+            update_ticket(trainInfo, refund, train, true, s);
             Yuki::vector<Ticket> waitingList = Waiting.find(re_train);
             for (int i = 0; i < waitingList.size(); i++) {
                 int s_index = waitingList[i].st;
                 int t_index = waitingList[i].en;
                 // 在re_train.day这一天发车
-                int seats = TrainSystem::cal_ticket_(trainInfo, re_train.day, s_index, t_index);
+                int seats = train.cal_ticket(trainInfo, re_train.day, s_index, t_index, s);
                 Day w_st = TrainSystem::checkBegin(waitingList[i].day, trainInfo.ini_time,
                                                    trainInfo.stations[s_index].leaveTime);
-                if (re_train.day != w_st) continue;
+                if (st_day != w_st) continue;
                 if (seats >= waitingList[i].num) {
-                    update_ticket(trainInfo, waitingList[i], train, false);
+                    update_ticket(trainInfo, waitingList[i], train, false, s);
                     waitingList[i].status = success;
                     Waiting.erase(Yuki::pair<TrainTime, Ticket>(re_train, waitingList[i]));
                     Order.update(Yuki::pair<char, Ticket>(waitingList[i].user, waitingList[i]));
@@ -278,7 +277,7 @@ public:
         refund.status = refunded;
         Order.update(Yuki::pair<char, Ticket> (u, refund));
         train.trainIndex.write(trainInfo, TrainSystem::indexToPos(info_index));
-        //train.Buffer.insert(info_index, trainInfo, train.trainIndex, 2, false);
+        train.seatsIndex.write(s,  sizeof(Seats) * (durMax * trainInfo.index + dur));
     }
 
     static void clean() {

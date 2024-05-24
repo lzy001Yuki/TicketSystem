@@ -25,7 +25,6 @@ public:
         strcpy(password, pw);
         strcpy(name, n);
         strcpy(mailAddr, ma);
-        //isLogin = flag;
     }
 
     void create(const char* un, const char *pw, const char* n, const char* ma, int p, bool flag = false) {
@@ -34,7 +33,6 @@ public:
         strcpy(name, n);
         strcpy(mailAddr, ma);
         privilege = p;
-        //isLogin = flag;
     }
     friend std::ostream &operator<<(std::ostream &os, const UserInfo &user_info) {
         os<<user_info.username<<' '<<user_info.name<<' '<<user_info.mailAddr<<' '<<user_info.privilege<<'\n';
@@ -106,13 +104,6 @@ public:
             return 0;
         }
         if (cur_user == nullptr) return -1;
-        /*UserInfo cur_info;
-        int info_index;
-        bool isHere = userData.findKV(cur_user, info_index);
-        if (!isHere) return -1; // cur_name 不存在
-        if (!Buffer.find(info_index, cur_info))
-            userIndex.read(cur_info, changeToPos(info_index));*/
-        //if (!cur_info.isLogin) return -1; // 当前用户未登录
         auto it = LogIn.find(cur_user);
         if (it == LogIn.end()) return -1;
         if (p > it->second) return -1; // 创建用户权限大于当前用户
@@ -125,8 +116,6 @@ public:
         }
         userData.insert(Yuki::pair<char, int> (new_user, total));
         userIndex.write(user_info, changeToPos(total));
-        //Buffer.insert(total, user_info, userIndex, 2, false);
-        //Buffer.insert(info_index, cur_info, userIndex, 2, false);
         total++;
         return 0;
     }
@@ -138,26 +127,13 @@ public:
         if (!exist) return -1;
         auto it = LogIn.find(username);
         if (it != LogIn.end()) return -1;
-        //if (!Buffer.find(now_index, now_user))
-            userIndex.read(now_user, changeToPos(now_index));
-        //if (now_user.isLogin) return -1;
+        userIndex.read(now_user, changeToPos(now_index));
         if (strcmp(password, now_user.password) != 0) return -1;
-        //now_user.isLogin = true;
-        //Buffer.insert(now_index, now_user, userIndex, 2, false);
         LogIn.insert(std::pair<std::string, int>(username, now_user.privilege));
         return 0;
     }
 
     int logOut(const char *username) {
-        UserInfo now_user;
-        int now_index;
-        //bool exist = userData.findKV(username, now_index);
-        //if (!exist) return -1;
-        //if (!Buffer.find(now_index, now_user)) userIndex.read(now_user, changeToPos(now_index));
-        //if (!now_user.isLogin) return -1;
-        //now_user.isLogin = false;
-        //userIndex.write(now_user, changeToPos(now_index));
-        //Buffer.insert(now_index, now_user, userIndex, 2, false);
         auto it = LogIn.find(username);
         if (it == LogIn.end()) return -1;
         LogIn.erase(it);
@@ -165,44 +141,26 @@ public:
     }
 
     Yuki::pair<UserInfo, bool> query_profile(const char* cur_name, const char *username) {
-        /*UserInfo cur_user;
-        int cur_index;
-        bool exist = userData.findKV(cur_name, cur_index);
-        if (!exist) return {cur_user, false};
-        if (!Buffer.find(cur_index, cur_user))
-            userIndex.read(cur_user, changeToPos(cur_index));*/
-        //if (!cur_user.isLogin) return {cur_user, false};
         UserInfo query_user;
         auto it = LogIn.find(cur_name);
         if (it == LogIn.end()) return {query_user, false};
         int q_index;
         bool exist_ = userData.findKV(username, q_index);
         if (!exist_) return {query_user, false};
-        //if (!Buffer.find(q_index, query_user))
-            userIndex.read(query_user, changeToPos(q_index));
+        userIndex.read(query_user, changeToPos(q_index));
         if (it->second < query_user.privilege) return {query_user, false};
         if (it->second == query_user.privilege && strcmp(cur_name, username) != 0) return {query_user, false};
-        //Buffer.insert(cur_index, cur_user, userIndex, 2, false);
-        //Buffer.insert(q_index, query_user, userIndex, 2, false);
         return {query_user, true};
     }
 
     Yuki::pair<UserInfo, bool> modify_profile(const char* cur_name, const char *username, const char *pw, const char *n, const char *mail, int p = -1) {
-        /*UserInfo cur_user;
-        int cur_index;
-        bool exist = userData.findKV(cur_name, cur_index);
-        if (!exist) return {cur_user, false};
-        if (!Buffer.find(cur_index, cur_user))
-            userIndex.read(cur_user, changeToPos(cur_index));*/
-        //if (!cur_user.isLogin) return {cur_user, false};
         UserInfo query_user;
         auto it = LogIn.find(cur_name);
         if (it == LogIn.end()) return {query_user, false};
         int q_index;
         bool exist_ = userData.findKV(username, q_index);
         if (!exist_) return {query_user, false};
-        //if (!Buffer.find(q_index, query_user))
-            userIndex.read(query_user, changeToPos(q_index));
+        userIndex.read(query_user, changeToPos(q_index));
         if (query_user.privilege > it->second) return {query_user, false};
         if (query_user.privilege == it->second && ((strcmp(cur_name, username) != 0) || p >= query_user.privilege) ) return {query_user, false};
         if (pw[0] != '\0') strcpy(query_user.password, pw);
@@ -210,9 +168,6 @@ public:
         if (mail[0] != '\0') strcpy(query_user.mailAddr, mail);
         if (p != -1) query_user.privilege = p;
         userIndex.write(query_user, changeToPos(q_index));
-        //Buffer.insert(cur_index, cur_user, userIndex, 2, false);
-        //Buffer.insert(q_index, query_user, userIndex, 2, false);
-        //userIndex.write(query_user, changeToPos(q_index));
         return {query_user, true};
     }
     static void clean() {
@@ -221,19 +176,6 @@ public:
         if (std::filesystem::exists(path1)) std::filesystem::remove(path1);
         if (std::filesystem::exists(path2)) std::filesystem::remove(path2);
     }
-    void LogTraverse() {
-        /*for (int i = 0; i < total; i++) {
-            UserInfo user;
-            if (!Buffer.find(i, user))
-                userIndex.read(user, changeToPos(i));
-            if (user.isLogin) {
-                user.isLogin = false;
-                userIndex.write(user, changeToPos(i));
-            }
-            Buffer.insert(i, user, userIndex, 2, false);
-        }*/
-    }
-
 };
 
 #endif //TICKETSYSTEM_USERSYSTEM_HPP
