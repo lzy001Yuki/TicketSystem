@@ -454,9 +454,9 @@ class TrainSystem{
     friend class TokenScanner;
 private:
     // trainId在trainIndex里对应index的位置
-    BPT<char, int, TrainFunction, 20, 2, 1024> trainData;
+    BPT<char, int, TrainFunction, 30, 2, 1024> trainData;
     // <station, index> station里面的所有trainId的index
-    BPT<char, int, TrainFunction, 20, 2, 1024> stationData; // 管理的是release 以后的车次
+    BPT<char, int, TrainFunction, 30, 2, 1024> stationData; // 管理的是release 以后的车次
     int total_index = 0;
     Yuki::vector<int> allIndex;
     FileSystem<TrainInfo, 2> trainIndex; // 第一个是total_index

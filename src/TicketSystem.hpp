@@ -190,12 +190,7 @@ public:
             std::cout<<"-1\n";
             return;
         }
-        //if (!user.Buffer.find(u_index, userInfo))
         user.userIndex.read(userInfo, UserManagement::changeToPos(u_index));
-        /*if (!userInfo.isLogin) {
-            std::cout<<"-1\n";
-            return;
-        }*/
         auto it = user.LogIn.find(u);
         if (it == user.LogIn.end()) {
             std::cout<<"-1\n";

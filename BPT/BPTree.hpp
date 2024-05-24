@@ -991,7 +991,7 @@ private:
     FileSystem<node, info_len> file;// 2个info,暂时先不管
     node root;
     FileSystem<int, 1> spaceFile;
-    Yuki::HashMap<int, node, Function, CacheSize, 1003> Cache;
+    Yuki::HashMap<int, node, Function, CacheSize, 2003> Cache;
     // Reuse the deleted place, in Merging Operation
     // we can also use it in Insert Operation
     Yuki::vector<int> Reuse;
@@ -1032,8 +1032,6 @@ private:
         int obj_index;
         if (objNode.key[pos] == obj && pos < objNode.len) {
             obj_index = objNode.sonPos[++pos];
-            //spilt_node.exist = true;
-            //return spilt_node;
         } else {
             obj_index = objNode.sonPos[pos];
         }
