@@ -110,13 +110,13 @@ public:
             return;
         }
         TrainInfo trainInfo;
-        int info_index;
-        if (!train.trainData.findKV(i, info_index)) {
+        basicInfo bi;
+        if (!train.trainData.findKV(i, bi)) {
             std::cout<<"-1\n";
             return;
         }
         // 即使release时间也可能不符
-        train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
+        train.trainIndex.read(trainInfo, TrainSystem::indexToPos(bi.index));
         if (!trainInfo.isRelease) {
             std::cout<<"-1\n";
             return;
@@ -157,7 +157,7 @@ public:
         int dur_time = TrainSystem::cal_now(trainInfo.date, st_day);
         Seats s;
         train.seatsIndex.read(s, sizeof(Seats) * (durMax * trainInfo.index + dur_time));
-        int seats = train.cal_ticket(trainInfo, d, s_index, t_index, s);
+        int seats = train.cal_ticket(s_index, t_index, s, trainInfo.maxSeats);
         if (seats >= n) {
             // 购票成功
             s.seat[s_index] -= n;
@@ -165,7 +165,7 @@ public:
             int p = n * (trainInfo.stations[t_index].price - trainInfo.stations[s_index].price);
             Ticket ticket(u, i, s_index, t_index, n, d, time, success);
             Order.insert(Yuki::pair<char, Ticket> (u, ticket));
-            train.trainIndex.write(trainInfo, TrainSystem::indexToPos(info_index));
+            train.trainIndex.write(trainInfo, TrainSystem::indexToPos(bi.index));
             train.seatsIndex.write(s, sizeof (Seats) * (durMax * trainInfo.index + dur_time));
             std::cout<<p<<'\n';
         } else {
@@ -204,12 +204,12 @@ public:
             if (log[i].status == refunded) std::cout<<"[refunded] ";
             std::cout<<log[i].trainID<<" ";
             TrainInfo trainInfo;
-            int info_index;
+            basicInfo bi;
             char tr[66] = {'\0'};
             strcpy(tr, log[i].trainID);
-            train.trainData.findKV(log[i].trainID, info_index);
+            train.trainData.findKV(log[i].trainID, bi);
             //if (!train.Buffer.find(info_index, trainInfo))
-            train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
+            train.trainIndex.read(trainInfo, TrainSystem::indexToPos(bi.index));
             int s_index = log[i].st;
             Day st_day = TrainSystem::checkBegin(log[i].day, trainInfo.ini_time, trainInfo.stations[s_index].leaveTime);
             Yuki::pair<Day, Time> leave = TrainSystem::showTime(st_day, trainInfo.ini_time, trainInfo.stations[s_index].leaveTime);
@@ -236,9 +236,9 @@ public:
         if (n > log.size()) return -1;
         Ticket refund = log[log.size() - n];
         TrainInfo trainInfo;
-        int info_index;
-        train.trainData.findKV(refund.trainID, info_index);
-        train.trainIndex.read(trainInfo, TrainSystem::indexToPos(info_index));
+        basicInfo bi;
+        train.trainData.findKV(refund.trainID, bi);
+        train.trainIndex.read(trainInfo, TrainSystem::indexToPos(bi.index));
         int index = refund.st;
         Day st_day = TrainSystem::checkBegin(refund.day, trainInfo.ini_time, trainInfo.stations[index].leaveTime);
         TrainTime re_train(refund.trainID, st_day);
@@ -256,7 +256,7 @@ public:
                 int s_index = waitingList[i].st;
                 int t_index = waitingList[i].en;
                 // 在re_train.day这一天发车
-                int seats = train.cal_ticket(trainInfo, re_train.day, s_index, t_index, s);
+                int seats = train.cal_ticket(s_index, t_index, s, trainInfo.maxSeats);
                 Day w_st = TrainSystem::checkBegin(waitingList[i].day, trainInfo.ini_time,
                                                    trainInfo.stations[s_index].leaveTime);
                 if (st_day != w_st) continue;
@@ -271,7 +271,7 @@ public:
         //train.trainData.update(Yuki::pair<char, TrainInfo> (trainInfo.trainID, trainInfo));
         refund.status = refunded;
         Order.update(Yuki::pair<char, Ticket> (u, refund));
-        train.trainIndex.write(trainInfo, TrainSystem::indexToPos(info_index));
+        train.trainIndex.write(trainInfo, TrainSystem::indexToPos(bi.index));
         train.seatsIndex.write(s,  sizeof(Seats) * (durMax * trainInfo.index + dur));
     }
 

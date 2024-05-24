@@ -17,7 +17,7 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
     std::cout<<timeStamp<<' ';
 
     // 检查query_transfer的问题 余票也有问题
-    if (timeStamp == "[5994]") {
+    if (timeStamp == "[264091]") {
         int y = 2;
     }
 
@@ -308,6 +308,8 @@ int main() {
     //std::freopen("../testcases/pressure_2_easy/55.in", "r", stdin);
     //std::freopen("answer.txt", "w", stdout);
     std::ios::sync_with_stdio(false);
+    std::cin.tie(0);
+    std::cout.tie(0);
     UserManagement userManagement;
     TrainSystem trainSystem;
     TicketSystem ticketSystem;

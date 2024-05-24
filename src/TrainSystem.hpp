@@ -1,465 +1,18 @@
 #ifndef TICKETSYSTEM_TRAINSYSTEM_HPP
 #define TICKETSYSTEM_TRAINSYSTEM_HPP
-#include<cstring>
-#include<string>
-#include"../BPT/vector.hpp"
-#include"../BPT/BPTree.hpp"
-#include"../BPT/priority_queue.hpp"
-
-int Month[13] = {0,31,29,31,30,31,30,31,31,30,31,30,31};
-const int trainIdMax = 24;
-const int staIdMax = 30;
-const int staNumMax = 25;
-const int durMax = 100; // 发车的最长时长
-class Time{
-    friend class Day;
-    friend class TrainSystem;
-    friend class StationInfo;
-    friend class TrainInfo;
-    friend class TokenScanner;
-private:
-    int hour = -1;
-    int minute = -1;
-public:
-    Time() {
-        hour = -1;
-        minute = -1;
-    }
-    explicit Time(int h, int m) :hour(h), minute(m){}
-    std::string change(int num) const {
-        std::string ans;
-        if (num == -1) {
-            ans = "xx";
-            return ans;
-        }
-        std::string ans1(1, num / 10 + '0');
-        std::string ans2(1, num % 10 + '0');
-        ans = ans1 + ans2;
-        return ans;
-    }
-
-    Time& operator=(const Time& other) {
-        if (this == &other) return *this;
-        hour = other.hour;
-        minute = other.minute;
-        return *this;
-    }
-
-    static bool checkTime(const Time& t) {
-        if (t.minute >= 60) return false;
-        if (t.hour >= 24) return false;
-        return true;
-    }
-
-    bool operator< (const Time& other) const {
-        if (hour < other.hour) return true;
-        if (hour == other.hour) {
-            if (minute < other.minute) return true;
-            else return false;
-        } else return false;
-    }
-
-    int operator-(const Time& other) const {
-        int d_h = hour - other.hour;
-        int d_m = minute - other.minute;
-        return d_h * 60 + d_m;
-    }
-
-    bool operator==(const Time &other) const {
-        return (hour == other.hour) && (minute == other.minute);
-    }
-
-    friend std::ostream& operator<< (std::ostream& os, const Time &obj) {
-        os<<obj.change(obj.hour)<<':'<<obj.change(obj.minute);
-        return os;
-    }
-};
-class Day{
-    friend class Time;
-    friend class Date;
-    friend class TrainSystem;
-    friend class TokenScanner;
-private:
-    int month = -1;
-    int day = -1;
-public:
-    Day() {
-        month = -1;
-        day = -1;
-    }
-    explicit Day(int m, int d) : month(m), day(d){}
-    std::string change(int num, bool flag = true) const {
-        std::string ans;
-        if (num == -1) {
-            ans = "xx";
-            return ans;
-        }
-        std::string ans1(1, num / 10 + '0');
-        std::string ans2(1, num % 10 + '0');
-        ans = ans1 + ans2;
-        return ans;
-    }
-    static bool checkDay(const Day& d) {
-        if (d.month > 12 || d.month <= 0) return false;
-        if (d.day > Month[d.month] || d.day < 0) return false;
-        return true;
-    }
-    bool operator==(const Day &other) const {
-        return day == other.day && month == other.month;
-    }
-    bool operator < (const Day &other) const {
-        if (month < other.month) return true;
-        else if (month > other.month) return false;
-        else return day < other.day;
-    }
-    bool operator != (const Day &other) const {
-        return !(*this == other);
-    }
-    Day &operator=(const Day &other) {
-        if (this == &other) return *this;
-        month = other.month;
-        day = other.day;
-        return *this;
-    }
-
-    int operator-(Day &other) const {
-        if (month == other.month) {
-            return day - other.day;
-        }
-        int sum = 0;
-        if (month < other.month) {
-            for (int i = month + 1; i < other.month; i++) sum += Month[i];
-            sum += other.day;
-            sum += (Month[month] - day);
-            return sum;
-        }
-        if (month > other.month) {
-            for (int i = other.month + 1; i < month; i++) sum += Month[i];
-            sum += day;
-            sum += (Month[other.month] - other.day);
-            return sum;
-        }
-    }
-
-    Day operator++(int n) {
-        Day temp = *this;
-        if (day == Month[month]) {
-            day = 1;
-            month++;
-        }
-        else day++;
-        return temp;
-    }
-    friend std::ostream& operator<<(std::ostream &os, const Day &obj) {
-        os<<obj.change(obj.month)<<'-'<<obj.change(obj.day);
-        return os;
-    }
-};
-class Date{
-    friend class TicketSystem;
-    friend class TrainInfo;
-    friend class TrainSystem;
-    friend class TokenScanner;
-private:
-    Day st;
-    Day en;
-public:
-    Date() = default;
-    explicit Date(Day a, Day b) :st(a), en(b){}
-    bool check(const Day &day) const {
-        if (day.month < st.month || day.month > en.month) return false;
-        if (day.month == st.month) {
-            if (day.day < st.day || day.day <= 0) return false;
-        }
-        if (day.month == en.month) {
-            if (day.day > en.day || day.day > Month[en.month]) return false;
-        }
-        for (int i = st.month + 1; i < en.month; i++) {
-            if (day.day <= 0 || day.day > Month[i]) return false;
-        }
-        return true;
-    }
-    Date& operator=(const Date &other) {
-        if (this == &other) return *this;
-        st = other.st;
-        en = other.en;
-        return *this;
-    }
-};
-class StationInfo{
-    friend class TrainSystem;
-    friend class TrainInfo;
-    friend class TicketSystem;
-private:
-    char name[staIdMax] = {'\0'};
-    int price = 0; // 第一站的票价为0
-    int arriveTime = 0;
-    int leaveTime = 0;
-public:
-    StationInfo() = default;
-    explicit StationInfo(const char *n, int p, int at, int lt) :price(p), arriveTime(at), leaveTime(lt){
-        strcpy(name, n);
-    }
-    StationInfo &operator=(const StationInfo &other) {
-        if (this == &other) return *this;
-        strcpy(name, other.name);
-        price = other.price;
-        arriveTime = other.arriveTime;
-        leaveTime = other.leaveTime;
-        return *this;
-    }
-    bool operator< (const StationInfo& other) const {
-        if (strcmp(name, other.name) < 0) return true;
-        else return false;
-    }
-    bool operator == (const StationInfo& other) const {
-        if (strcmp(name, other.name) == 0) return true;
-        else return false;
-    }
-    bool operator> (const StationInfo& other) const {
-        if (strcmp(name, other.name) > 0) return true;
-        else return false;
-    }
-    bool operator != (const StationInfo& other) {
-        if (strcmp(name, other.name) != 0) return true;
-        else return false;
-    }
-};
-class Seats{
-public:
-    int seat[staNumMax + 1] = {0};
-    Seats& operator=(const Seats& other) {
-        if (this == &other) return *this;
-        for (int i = 0; i <= staNumMax; i++) seat[i] = other.seat[i];
-        return *this;
-    }
-};
-/// 用hash表示车站名？
-class TrainInfo{
-    friend class TrainSystem;
-    friend class timeComp;
-    friend class costComp;
-    friend class TicketSystem;
-    friend class TransComp;
-private:
-    char trainID[24] = {'\0'};
-    int stationNum = 0;
-    char type = '\0';
-    Time ini_time;
-    // 1-based
-    StationInfo stations[22];
-    Date date;
-    bool isRelease = false;
-    int maxSeats = 0;
-    int index = 0;
-public:
-    TrainInfo(){}
-    explicit TrainInfo(const char* id, int n, char t, Date date_, Time time, bool flag, int ms) :stationNum(n), type(t),date(date_), ini_time(time), isRelease(flag), maxSeats(ms){
-        strcpy(trainID, id);
-    }
-    explicit TrainInfo(const TrainInfo& other) {
-        strcpy(trainID, other.trainID);
-        stationNum = other.stationNum;
-        type = other.type;
-        ini_time = other.ini_time;
-        date = other.date;
-        isRelease = other.isRelease;
-        for (int i = 1; i <= stationNum; i++) {
-            stations[i] = other.stations[i];
-        }
-        index = other.index;
-        maxSeats = other.maxSeats;
-    }
-
-    TrainInfo& operator=(const TrainInfo& other) {
-        if (this == &other) return *this;
-        strcpy(trainID, other.trainID);
-        stationNum = other.stationNum;
-        type = other.type;
-        ini_time = other.ini_time;
-        date = other.date;
-        isRelease = other.isRelease;
-        index = other.index;
-        maxSeats = other.maxSeats;
-        for (int i = 1; i <= stationNum; i++) {
-            stations[i] = other.stations[i];
-        }
-        return *this;
-    }
-    bool operator==(const TrainInfo& other) {
-        if (strcmp(trainID, other.trainID) == 0) return true;
-        else return false;
-    }
-    bool operator < (const TrainInfo& other) {
-        if (strcmp(trainID, other.trainID) < 0) return true;
-        else return false;
-    }
-    bool operator > (const TrainInfo& other) {
-        if (strcmp(trainID, other.trainID) > 0) return true;
-        else return false;
-    }
-};
-class compInfo{
-    friend class timeComp;
-    friend class costComp;
-    friend class TrainSystem;
-    friend class TransComp;
-private:
-    int price = 0;
-    int time = 0;
-    TrainInfo train;
-    int st = 0;
-    int en = 0;
-public:
-    compInfo() = default;
-    explicit compInfo(int p, int t, TrainInfo& tr, int s, int e) :price(p), time(t), st(s), en(e) {
-        train = tr;
-    }
-    compInfo& operator=(const compInfo& other) {
-        if (this == &other) return *this;
-        price = other.price;
-        time = other.price;
-        st = other.st;
-        en = other.en;
-        train = other.train;
-        return *this;
-    }
-};
-class timeComp{
-public:
-    bool operator() (const compInfo& a, const compInfo& b) const {
-        if (a.time > b.time) return true;
-        else if (a.time == b.time) {
-            if (strcmp(a.train.trainID, b.train.trainID) > 0) return true;
-            else return false;
-        } else return false;
-    }
-};
-class costComp{
-public:
-    bool operator() (const compInfo& a, const compInfo& b) const {
-        if (a.price > b.price) return true;
-        else if (a.price == b.price) {
-            if (strcmp(a.train.trainID, b.train.trainID) > 0) return true;
-            else return false;
-        } else return false;
-    }
-};
-class TrainFunction{
-public:
-    int operator() (const int &num) {
-        return num;
-    }
-};
-template <class T, class cmp = std::less<T>>
-class Sort{
-private:
-    cmp comp;
-    void merge(T arr[], int start, int mid, int end) {
-        T result[end - start + 5];
-        int k = 0;
-        int i = start;
-        int j = mid + 1;
-        while (i <= mid && j <= end) {
-            if (comp(arr[i], arr[j])){
-                result[k++] = arr[i++];
-            }
-            else{
-                result[k++] = arr[j++];
-            }
-        }
-        if (i == mid + 1) {
-            while(j <= end)
-                result[k++] = arr[j++];
-        }
-        if (j == end + 1) {
-            while (i <= mid)
-                result[k++] = arr[i++];
-        }
-        for (j = 0, i = start ; j < k; i++, j++) {
-            arr[i] = result[j];
-        }
-    }
-public:
-    void mergeSort(T arr[], int start, int end) {
-        if (start >= end)
-            return;
-        int mid = ( start + end ) / 2;
-        mergeSort(arr, start, mid);
-        mergeSort(arr, mid + 1, end);
-        merge(arr, start, mid, end);
-    }
-};
-class TransComp{
-    friend class TrainSystem;
-private:
-    int time = 0;
-    int cost = 0;
-    compInfo first;
-    compInfo second;
-    Yuki::pair<Day, Time> mid_arr;
-    Yuki::pair<Day, Time> mid_lea;
-    Yuki::pair<Day, Time> st_lea;
-    Yuki::pair<Day, Time> en_arr;
-public:
-    TransComp() = default;
-    explicit TransComp(int t, int c) : time(t), cost(c) {}
-    TransComp& operator=(const TransComp& other) {
-        if (this == &other) return *this;
-        time = other.time;
-        cost = other.cost;
-        first = other.first;
-        second = other.second;
-        mid_arr = other.mid_arr;
-        mid_lea = other.mid_lea;
-        st_lea = other.st_lea;
-        en_arr = other.en_arr;
-        return *this;
-    }
-    bool comp_cost(const TransComp& other) {
-        if (cost > other.cost) return true;
-        if (cost == other.cost) {
-            if (time > other.time) return true;
-            else if (time < other.time) return false;
-            else {
-                if (strcmp(first.train.trainID, other.first.train.trainID) > 0) return true;
-                else if (strcmp(first.train.trainID, other.first.train.trainID) < 0) return false;
-                else {
-                    if (strcmp(second.train.trainID, other.second.train.trainID) > 0) return true;
-                    else return false;
-                }
-            }
-        } else return false;
-    }
-    bool comp_time(const TransComp& other) {
-        if (time > other.time) return true;
-        if (time == other.time) {
-            if (cost > other.cost) return true;
-            else if (cost < other.cost) return false;
-            else {
-                if (strcmp(first.train.trainID, other.first.train.trainID) > 0) return true;
-                else if (strcmp(first.train.trainID, other.first.train.trainID) < 0) return false;
-                else {
-                    if (strcmp(second.train.trainID, other.second.train.trainID) > 0) return true;
-                    else return false;
-                }
-            }
-        } else return false;
-    }
-};
-
+#include "trainType.hpp"
 class TrainSystem{
     friend class TicketSystem;
     friend class TokenScanner;
     friend class TokenScanner;
 private:
     // trainId在trainIndex里对应index的位置
-    BPT<char, int, TrainFunction, 30, 2, 1024> trainData;
+    BPT<char, basicInfo, TrainFunction, 30, 2, 1024> trainData;
     // <station, index> station里面的所有trainId的index
-    BPT<char, Yuki::pair<int, int>, TrainFunction, 30, 2, 1024> stationData; // 管理的是release 以后的车次
+    BPT<char, TrainSta, TrainFunction, 30, 2, 1024> stationData; // 管理的是release 以后的车次
     int total_index = 0;
     Yuki::vector<int> allIndex;
-    FileSystem<TrainInfo, 2> trainIndex; // 第一个是total_index
+    FileSystem<TrainInfo, 2> trainIndex; // 第一个是total_index，储存完整的trainInfo
     FileSystem<int, 2> deleteIndex; // 删除的train空间回收
     FileSystem<Seats, 0> seatsIndex;
 
@@ -523,33 +76,33 @@ private:
         }
         return st;
     }
-    void trans_print(const compInfo &info, const Yuki::pair<Day, Time> &leave, const Yuki::pair<Day, Time> &arrive) {
-        query_print(info.train, leave.first, info.train.stations[info.st].name, info.train.stations[info.en].name, leave, arrive, info.price, info.st, info.en);
+    void trans_print(const compInfo &c_info, const Yuki::pair<Day, Time> &leave, const Yuki::pair<Day, Time> &arrive, const char *s, const char *e) {
+        query_print(c_info, leave.first, s, e, leave, arrive, c_info.st, c_info.en);
     }
     // 在d这天买的train_info车次从s_index到t_index
-    int cal_ticket(const TrainInfo &train_info, const Day& d, const int &s_index, const int &t_index, Seats& seats) {
+    int cal_ticket(const int &s_index, const int &t_index, Seats& seats, const int &max) {
         int cnt = 0;
         int min = 100005;
         for (int k = s_index; k < t_index; k++) {
             cnt += seats.seat[k];
             if (cnt < min) min = cnt;
         }
-        int pre_ticket = train_info.maxSeats;
+        int pre_ticket = max;
         for (int k = 1; k < s_index; k++) {
             pre_ticket += seats.seat[k];
         }
         int min_ticket = pre_ticket + min;
         return min_ticket;
     }
-    void query_print(const TrainInfo& train_info, const Day &d, const char* s, const char *t, Yuki::pair<Day, Time> leave, const Yuki::pair<Day, Time> &arrive, const int &p, const int &s_index, const int &t_index) {
+    void query_print(const compInfo& train_info, const Day &d, const char* s, const char *t, Yuki::pair<Day, Time> leave, const Yuki::pair<Day, Time> &arrive, int s_index, int t_index) {
         std::cout<<train_info.trainID<<' '<<s<<' ';
         std::cout<<leave.first<<' '<<leave.second<<" -> ";
-        std::cout<<t<<' '<<arrive.first<<' '<<arrive.second<<' '<<p<<' ';
+        std::cout<<t<<' '<<arrive.first<<' '<<arrive.second<<' '<<train_info.price<<' ';
         Seats seats;
-        Day st_day = checkBegin(d, train_info.ini_time, train_info.stations[s_index].leaveTime);
-        int dur_now = cal_now(train_info.date, st_day);// 1-based 是发车的第几天
-        seatsIndex.read(seats, sizeof(Seats) * (durMax * train_info.index + dur_now));
-        std::cout<<cal_ticket(train_info, d, s_index, t_index, seats)<<'\n';
+        Day st_day = checkBegin(d, train_info.info.ini, train_info.st_lt);
+        int dur_now = cal_now(train_info.info.date, st_day);// 1-based 是发车的第几天
+        seatsIndex.read(seats, sizeof(Seats) * (durMax * train_info.info.index + dur_now));
+        std::cout<<cal_ticket(s_index, t_index, seats, train_info.info.maxSeats)<<'\n';
     }
 public:
     // 考虑stationData是否可以变为<char, char>
@@ -574,10 +127,17 @@ public:
         }
     }
 
-    int add_train(const char* i, int n, int m, const Yuki::vector<string> &s, const Yuki::vector<int> &p, Time x, const Yuki::vector<int> &t, const Yuki::vector<int> &o, const Date &d, char y) {
+    int add_train(const char* i, int n, int m, const Yuki::vector<string> &s, const Yuki::vector<int> &p, const Time& x, const Yuki::vector<int> &t, const Yuki::vector<int> &o, const Date &d, char y) {
         TrainInfo train_info(i, n, y, d, x, false, m);
         int info_index;
-        bool exist = trainData.findKV(i, info_index);
+        if (allIndex.empty()) info_index = total_index++;
+        else {
+            info_index = allIndex.back();
+            allIndex.pop_back();
+        }
+        train_info.index = info_index;
+        basicInfo bi(d, x, info_index, m);
+        bool exist = trainData.findKV(i, bi);
         if (exist) return -1;
         for (int j = 1; j <= n; j++) {
             strcpy(train_info.stations[j].name, s[j - 1].c_str());
@@ -595,55 +155,44 @@ public:
                 train_info.stations[n].arriveTime = (train_info.stations[n - 1].leaveTime + t[n - 2]);
             }
         }
-        if (allIndex.empty()) info_index = total_index++;
-        else {
-            info_index = allIndex.back();
-            allIndex.pop_back();
-        }
-        train_info.index = info_index;
-        trainData.insert(Yuki::pair<char, int>(i, info_index));
+        trainData.insert(Yuki::pair<char, basicInfo>(i, bi));
         trainIndex.write(train_info, indexToPos(info_index));
-        if (info_index == 1) {
-            int l = 2;
-        }
         return 0;
     }
     int delete_train(const char *i) {
         TrainInfo d_info;
-        int info_index;
-        bool exist = trainData.findKV(i, info_index);
+        basicInfo bi;
+        bool exist = trainData.findKV(i, bi);
         if (!exist) return -1;
-        trainIndex.read(d_info, indexToPos(info_index));
+        trainIndex.read(d_info, indexToPos(bi.index));
         if (d_info.isRelease) return -1;
         else {
-            for (int j = 1; j <= d_info.stationNum; j++) {
-                stationData.erase(Yuki::pair<char, Yuki::pair<int, int>> (d_info.stations[j].name, {info_index, j}));
-            }
-            trainData.erase(Yuki::pair<char, int> (i, info_index));
-            allIndex.push_back(info_index);
+            trainData.erase(Yuki::pair<char, basicInfo> (i, bi));
+            allIndex.push_back(bi.index);
         }
         return 0;
     }
     int release_train(const char* i) {
         TrainInfo r_info;
-        int info_index;
-        bool exist = trainData.findKV(i, info_index);
+        basicInfo bi;
+        bool exist = trainData.findKV(i, bi);
         if (!exist) return -1;
-        trainIndex.read(r_info, indexToPos(info_index));
+        trainIndex.read(r_info, indexToPos(bi.index));
         if (r_info.isRelease) return -1;
         r_info.isRelease = true;
-        trainIndex.write(r_info, indexToPos(info_index));
+        trainIndex.write(r_info, indexToPos(bi.index));
         for (int j = 1; j <= r_info.stationNum; j++) {
-            stationData.insert(Yuki::pair<char, Yuki::pair<int, int>> (r_info.stations[j].name, {info_index, j}));
+            TrainSta ts(i, bi, j, r_info.stations[j].price, r_info.stations[j].arriveTime, r_info.stations[j].leaveTime);
+            stationData.insert(Yuki::pair<char, TrainSta> (r_info.stations[j].name, ts));
         }
         return 0;
     }
     Yuki::pair<TrainInfo, bool> query_train(const char *i, Day& day) {
         TrainInfo q_info;
-        int info_index;
-        bool exist = trainData.findKV(i, info_index);
+        basicInfo bi;
+        bool exist = trainData.findKV(i, bi);
         if (!exist) return {q_info, false};
-        trainIndex.read(q_info, indexToPos(info_index));
+        trainIndex.read(q_info, indexToPos(bi.index));
         bool isDue = q_info.date.check(day);
         if (!isDue) return {q_info, false};
         return {q_info, true};
@@ -675,7 +224,7 @@ public:
     }
     // flag->true  time    false cost
     void query_ticket(const char* s, const char *t, const Day& d, bool flag) {
-        Yuki::vector<Yuki::pair<int, int>> all_st, all_en, all;
+        Yuki::vector<TrainSta> all_st, all_en, all;
         all_st = stationData.find(s); // 均已经release过
         all_en = stationData.find(t);
         Yuki::priority_queue<compInfo, timeComp> tq;
@@ -686,16 +235,16 @@ public:
         }
         int m = 0, n = 0;
         while (m < all_st.size() && n < all_en.size()) {
-            if (all_st[m].first < all_en[n].first) {
+            if (all_st[m].info.index < all_en[n].info.index) {
                 m++;
                 continue;
             }
-            if (all_st[m].first > all_en[n].first) {
+            if (all_st[m].info.index > all_en[n].info.index) {
                 n++;
                 continue;
             }
-            if (all_st[m].first == all_en[n].first) {
-                if (all_st[m].second >= all_en[n].second) {
+            if (all_st[m].info.index == all_en[n].info.index) {
+                if (all_st[m].st_index >= all_en[n].st_index) {
                     m++;
                     n++;
                     continue;
@@ -707,21 +256,20 @@ public:
             }
         }
         for (int i = 0; i < all.size(); i += 2) {
-            TrainInfo objTrain;
-            trainIndex.read(objTrain, indexToPos(all[i].first));
-            int res = all[i].second;
-            StationInfo st = objTrain.stations[res];
-            Day earliest(showTime(objTrain.date.st, objTrain.ini_time, st.leaveTime).first);
-            Day latest(showTime(objTrain.date.en, objTrain.ini_time, st.leaveTime).first);
+            //TrainInfo objTrain;
+            //trainIndex.read(objTrain, indexToPos(all[i].first));
+            int res = all[i].st_index;
+            //StationInfo st = objTrain.stations[res];
+            Day earliest(showTime(all[i].info.date.st, all[i].info.ini, all[i].l_time).first);
+            Day latest(showTime(all[i].info.date.en, all[i].info.ini, all[i].l_time).first);
             Date dur(earliest, latest);
             if (!dur.check(d)) continue; // 不在发车时间段内
-            int ans = all[i + 1].second;
-            if (ans == objTrain.stationNum + 1 || res == objTrain.stationNum + 1) continue;
+            int ans = all[i + 1].st_index;
             if (ans != -1) {
-                int cost = objTrain.stations[ans].price - objTrain.stations[res].price;
-                int time_ = objTrain.stations[ans].arriveTime - objTrain.stations[res].leaveTime;
-                if (flag) tq.push(compInfo(cost, time_, objTrain, res, ans));
-                else cq.push(compInfo(cost, time_, objTrain, res, ans));
+                int cost = all[i + 1].price - all[i].price;
+                int time_ = all[i + 1].a_time - all[i].l_time;
+                if (flag) tq.push(compInfo(all[i].trainID, cost, time_, all[i].info, all[i].l_time, all[i + 1].a_time, res, ans));
+                else cq.push(compInfo(all[i].trainID, cost, time_, all[i].info, all[i].l_time, all[i + 1].a_time, res, ans));
             }
         }
         if (flag) {
@@ -729,32 +277,32 @@ public:
             while (!tq.empty()) {
                 compInfo top = tq.top();
                 tq.pop();
-                Day st = checkBegin(d, top.train.ini_time, top.train.stations[top.st].leaveTime);
-                Yuki::pair<Day, Time> leave = showTime(st, top.train.ini_time, top.train.stations[top.st].leaveTime);
-                Yuki::pair<Day, Time> arrive = showTime(st, top.train.ini_time, top.train.stations[top.en].arriveTime);
-                query_print(top.train, d, s, t, leave, arrive, top.price, top.st, top.en);
+                Day st = checkBegin(d, top.info.ini, top.st_lt);
+                Yuki::pair<Day, Time> leave = showTime(st, top.info.ini, top.st_lt);
+                Yuki::pair<Day, Time> arrive = showTime(st, top.info.ini, top.en_at);
+                query_print(top, d, s, t, leave, arrive, top.st, top.en);
             }
         } else {
             std::cout<<cq.size()<<'\n';
             while (!cq.empty()) {
                 compInfo top = cq.top();
                 cq.pop();
-                Day st = checkBegin(d, top.train.ini_time, top.train.stations[top.st].leaveTime);
-                Yuki::pair<Day, Time> leave = showTime(st, top.train.ini_time, top.train.stations[top.st].leaveTime);
-                Yuki::pair<Day, Time> arrive = showTime(st, top.train.ini_time, top.train.stations[top.en].arriveTime);
-                query_print(top.train, d, s, t, leave, arrive, top.price, top.st, top.en);
+                Day st = checkBegin(d, top.info.ini, top.st_lt);
+                Yuki::pair<Day, Time> leave = showTime(st, top.info.ini, top.st_lt);
+                Yuki::pair<Day, Time> arrive = showTime(st, top.info.ini, top.en_at);
+                query_print(top, d, s, t, leave, arrive, top.st, top.en);
             }
         }
     }
     void query_transfer(const char* s, const char *t, const Day& d, bool flag){
-        Yuki::vector<Yuki::pair<int, int>> all;
+        Yuki::vector<TrainSta> all;
         all = stationData.find(s);
         TransComp transComp;
         bool f = false;
         for (int i = 0; i < all.size(); i++) {
             TrainInfo firTrain;
-            trainIndex.read(firTrain, indexToPos(all[i].first));
-            int res = all[i].second;
+            trainIndex.read(firTrain, indexToPos(all[i].info.index));
+            int res = all[i].st_index;
             StationInfo st = firTrain.stations[res];// 始发站信息
             Day start_time = checkBegin(d, firTrain.ini_time, st.leaveTime);
             if (!firTrain.date.check(start_time)) continue;
@@ -764,12 +312,12 @@ public:
                 // 到达中转站的时间
                 Yuki::pair<Day, Time> arrive_mid = showTime(start_time, firTrain.ini_time, mid.arriveTime);
                 // 中转站里的所有车辆信息
-                Yuki::vector<Yuki::pair<int, int>> mid_all = stationData.find(mid.name);
+                Yuki::vector<TrainSta> mid_all = stationData.find(mid.name);
                 for (int k = 0; k < mid_all.size(); k++) {
                     TrainInfo secTrain;
-                    trainIndex.read(secTrain, indexToPos(mid_all[k].first));
+                    trainIndex.read(secTrain, indexToPos(mid_all[k].info.index));
                     if (secTrain == firTrain) continue;// 不能是同一辆车
-                    int m_index = mid_all[k].second;
+                    int m_index = mid_all[k].st_index;
                     int end = m_index + 1;
                     for (; end <= secTrain.stationNum; end++) {
                         if (strcmp(t, secTrain.stations[end].name) == 0) break;
@@ -804,9 +352,10 @@ public:
                     all_time = mid.arriveTime - st.leaveTime + en.arriveTime - secTrain.stations[m_index].leaveTime;
                     all_time += ((mid_arrive.second - arrive_mid.second) + 24 * 60 * (mid_arrive.first - arrive_mid.first));
                     all_cost = (mid.price - st.price + en.price - secTrain.stations[m_index].price);
-                    compInfo fir(mid.price - st.price, mid.arriveTime - st.arriveTime, firTrain, res, j);
-                    compInfo sec(en.price - secTrain.stations[m_index].price, en.arriveTime -secTrain.stations[m_index].leaveTime,
-                                 secTrain, m_index, end);
+                    compInfo fir(firTrain.trainID, mid.price - st.price, mid.arriveTime - st.arriveTime, all[i].info,
+                                 st.leaveTime, mid.arriveTime, res, j);
+                    compInfo sec(secTrain.trainID, en.price - secTrain.stations[m_index].price, en.arriveTime -secTrain.stations[m_index].leaveTime,
+                                 mid_all[k].info, secTrain.stations[m_index].leaveTime, en.arriveTime, m_index, end);
                     if (!f) {
                         transComp.cost = all_cost;
                         transComp.time = all_time;
@@ -816,9 +365,10 @@ public:
                         transComp.mid_arr = arrive_mid;
                         transComp.mid_lea = mid_arrive;
                         transComp.en_arr = en_arrive;
+                        strcpy(transComp.mid, mid.name);
                         f = true;
                     } else {
-                        TransComp other(all_time, all_cost);
+                        TransComp other(all_time, all_cost, mid.name);
                         other.first = fir;
                         other.mid_arr = arrive_mid;
                         other.mid_lea = mid_arrive;
@@ -836,8 +386,8 @@ public:
         }
         if (!f) std::cout<<"0\n";
         else {
-            trans_print(transComp.first, transComp.st_lea, transComp.mid_arr);
-            trans_print(transComp.second, transComp.mid_lea, transComp.en_arr);
+            trans_print(transComp.first, transComp.st_lea, transComp.mid_arr, s, transComp.mid);
+            trans_print(transComp.second, transComp.mid_lea, transComp.en_arr, transComp.mid, t);
         }
     }
     static void clean() {

@@ -20,4 +20,7 @@ add_executable(code
         src/TokenScanner.hpp
         BPT/map.hpp
         BPT/exceptions.hpp
+        src/timeManagement.hpp
+        src/Compare.hpp
+        src/trainType.hpp
 )
