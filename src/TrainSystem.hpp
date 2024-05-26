@@ -295,19 +295,20 @@ public:
         }
     }
     void query_transfer(const char* s, const char *t, const Day& d, bool flag){
-        Yuki::vector<TrainSta> all;
-        all = stationData.find(s);
+        Yuki::vector<TrainSta> all_s, all_t;
+        all_s = stationData.find(s);
+        all_t = stationData.find(t);
         TransComp transComp;
         bool f = false;
-        for (int i = 0; i < all.size(); i++) {
+        for (int i = 0; i < all_s.size(); i++) {
             TrainInfo firTrain;
-            trainIndex.read(firTrain, indexToPos(all[i].info.index));
-            int res = all[i].st_index;
+            trainIndex.read(firTrain, indexToPos(all_s[i].info.index));
+            int res = all_s[i].st_index;
             StationInfo st = firTrain.stations[res];// 始发站信息
             Day start_time = checkBegin(d, firTrain.ini_time, st.leaveTime);
             if (!firTrain.date.check(start_time)) continue;
             Yuki::pair<Day, Time> leave_st = showTime(start_time, firTrain.ini_time, st.leaveTime);
-            for (int j = res + 1; j <= firTrain.stationNum; j++) {
+            /*for (int j = res + 1; j <= firTrain.stationNum; j++) {
                 StationInfo mid = firTrain.stations[j];
                 // 到达中转站的时间
                 Yuki::pair<Day, Time> arrive_mid = showTime(start_time, firTrain.ini_time, mid.arriveTime);
@@ -379,6 +380,75 @@ public:
                             if (transComp.comp_time(other)) transComp = other;
                         } else {
                             if (transComp.comp_cost(other)) transComp = other;
+                        }
+                    }
+                }
+            }*/
+            for (int j = 0; j < all_t.size(); j++) {
+                TrainInfo secTrain;
+                if (all_s[i].info.index == all_t[j].info.index) continue;
+                trainIndex.read(secTrain, indexToPos(all_t[j].info.index));
+                int des = all_t[j].st_index;
+                StationInfo end = secTrain.stations[des];
+                for (int k = 1; k < des; k++) {
+                    for (int z = res + 1; z <= firTrain.stationNum; z++) {
+                        if (strcmp(firTrain.stations[z].name, secTrain.stations[k].name) != 0) continue;
+                        int f_mid = z, s_mid = k;
+                        StationInfo f_mid_st = firTrain.stations[f_mid], s_mid_st = secTrain.stations[s_mid];
+                        Yuki::pair<Day, Time> arrive_mid = showTime(start_time, firTrain.ini_time, f_mid_st.arriveTime);
+                        Day mid_earliest(showTime(secTrain.date.st, secTrain.ini_time, s_mid_st.leaveTime).first);
+                        Day mid_latest(showTime(secTrain.date.en, secTrain.ini_time, s_mid_st.leaveTime).first);
+                        Date mid_dur(mid_earliest, mid_latest);
+                        Day mid_start;
+                        Yuki::pair<Day, Time> mid_arrive;
+                        if (mid_dur.check(arrive_mid.first)) {
+                            // 到达时间在范围内，mid_arrive计算离开时间 ，不用考虑离开的时候是否在同一天
+                            mid_start = checkBegin(arrive_mid.first, secTrain.ini_time, s_mid_st.leaveTime);
+                            mid_arrive = showTime(mid_start, secTrain.ini_time, s_mid_st.leaveTime);
+                            if (mid_arrive.second < arrive_mid.second && mid_arrive.first == arrive_mid.first) {
+                                mid_arrive.first++;
+                                mid_start++;
+                                if (!mid_dur.check(mid_arrive.first)) continue;
+                            }
+                        } else {
+                            if (mid_latest < arrive_mid.first) continue;
+                            mid_start = secTrain.date.st;
+                            mid_arrive = showTime(mid_start, secTrain.ini_time, s_mid_st.leaveTime);
+                        }
+                        Yuki::pair<Day, Time> en_arrive = showTime(mid_start, secTrain.ini_time, end.arriveTime);
+                        int all_time = 0;
+                        int all_cost = 0;
+                        all_time = f_mid_st.arriveTime - st.leaveTime + end.arriveTime - s_mid_st.leaveTime;
+                        all_time += ((mid_arrive.second - arrive_mid.second) + 24 * 60 * (mid_arrive.first - arrive_mid.first));
+                        all_cost = (f_mid_st.price - st.price + end.price - s_mid_st.price);
+                        compInfo fir(firTrain.trainID, f_mid_st.price - st.price, f_mid_st.arriveTime - st.arriveTime, all_s[i].info,
+                                     st.leaveTime, f_mid_st.arriveTime, res, f_mid);
+                        compInfo sec(secTrain.trainID, end.price - s_mid_st.price, end.arriveTime - s_mid_st.leaveTime,
+                                     all_t[j].info, s_mid_st.leaveTime, end.arriveTime, s_mid, des);
+                        if (!f) {
+                            transComp.cost = all_cost;
+                            transComp.time = all_time;
+                            transComp.first = fir;
+                            transComp.second = sec;
+                            transComp.st_lea = leave_st;
+                            transComp.mid_arr = arrive_mid;
+                            transComp.mid_lea = mid_arrive;
+                            transComp.en_arr = en_arrive;
+                            strcpy(transComp.mid, s_mid_st.name);
+                            f = true;
+                        } else {
+                            TransComp other(all_time, all_cost, s_mid_st.name);
+                            other.first = fir;
+                            other.mid_arr = arrive_mid;
+                            other.mid_lea = mid_arrive;
+                            other.en_arr = en_arrive;
+                            other.st_lea = leave_st;
+                            other.second = sec;
+                            if (flag) {
+                                if (transComp.comp_time(other)) transComp = other;
+                            } else {
+                                if (transComp.comp_cost(other)) transComp = other;
+                            }
                         }
                     }
                 }
