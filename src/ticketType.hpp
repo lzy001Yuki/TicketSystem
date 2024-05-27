@@ -13,9 +13,9 @@ enum Status{success, pending, refunded};
 class Ticket{
     friend class TicketSystem;
 private:
-    char trainID[24] = {'\0'};
-    char st_n[30] = {'\0'};
-    char en_n[30] = {'\0'};
+    myChar<24> trainID;
+    myChar<30> st_n;
+    myChar<30> en_n;
     int st = 0;
     int en = 0;
     int num = 0;
@@ -28,12 +28,12 @@ private:
     int price = 0;
 public:
     Ticket() = default;
-    explicit Ticket(const char *tr, const char *sn, const char *enn, int s, int e, int n, const Day& d, int time_, Status sta
+    explicit Ticket(const myChar<24>& tr, const myChar<30>& sn, const myChar<30>& enn, int s, int e, int n, const Day& d, int time_, Status sta
             ,int stt, int ent, int p, Time &in) :num(n), status(sta), day(d), time(time_), st(s), en(e), ini(in),
             st_t(stt), en_t(ent), price(p){
-        strcpy(trainID, tr);
-        strcpy(st_n, sn);
-        strcpy(en_n, enn);
+        trainID = tr;
+        st_n = sn;
+        en_n = enn;
     }
     bool operator<(const Ticket& other) const {
         return time < other.time;
@@ -50,9 +50,9 @@ public:
         time = other.time;
         day = other.day;
         status = other.status;
-        strcpy(trainID, other.trainID);
-        strcpy(st_n, other.st_n);
-        strcpy(en_n, other.en_n);
+        trainID = other.trainID;
+        st_n = other.st_n;
+        en_n = other.en_n;
         st_t = other.st_t;
         en_t = other.en_t;
         st = other.st;
@@ -66,22 +66,22 @@ public:
 class TrainTime{
     friend class TicketSystem;
 private:
-    char trainID[24] = {'\0'};
+    myChar<24> trainID;
     Day day;/// 注意应该是发车时间！！！
 public:
     TrainTime() = default;
-    explicit TrainTime(const char *t, const Day &d) :day(d) {
-        strcpy(trainID, t);
+    explicit TrainTime(const myChar<24>& t, const Day &d) :day(d) {
+        trainID = t;
     }
     bool operator<(const TrainTime& other) const {
-        if (strcmp(trainID, other.trainID) < 0) return true;
-        else if (strcmp(trainID, other.trainID) > 0) return false;
+        if (trainID < other.trainID) return true;
+        else if (trainID > other.trainID) return false;
         else {
             return day < other.day;
         }
     }
     bool operator == (const TrainTime& other) const {
-        return (day == other.day) && (strcmp(trainID, other.trainID) == 0);
+        return (day == other.day) && (trainID == other.trainID);
     }
     bool operator != (const TrainTime& other) const {
         return !(*this == other);

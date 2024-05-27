@@ -23,4 +23,7 @@ add_executable(code
         src/timeManagement.hpp
         src/Compare.hpp
         src/trainType.hpp
+        src/ticketType.hpp
+        src/userType.hpp
+        BPT/Char.hpp
 )

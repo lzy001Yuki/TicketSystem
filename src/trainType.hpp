@@ -15,37 +15,37 @@ class StationInfo{
     friend class TrainInfo;
     friend class TicketSystem;
 private:
-    char name[staIdMax] = {'\0'};
+    myChar<staIdMax> name;
     int price = 0; // 第一站的票价为0
     int arriveTime = 0;
     int leaveTime = 0;
 public:
     StationInfo() = default;
-    explicit StationInfo(const char *n, int p, int at, int lt) :price(p), arriveTime(at), leaveTime(lt){
-        strcpy(name, n);
+    explicit StationInfo(const myChar<30>& n, int p, int at, int lt) :price(p), arriveTime(at), leaveTime(lt){
+        name = n;
     }
     StationInfo &operator=(const StationInfo &other) {
         if (this == &other) return *this;
-        strcpy(name, other.name);
+        name = other.name;
         price = other.price;
         arriveTime = other.arriveTime;
         leaveTime = other.leaveTime;
         return *this;
     }
     bool operator< (const StationInfo& other) const {
-        if (strcmp(name, other.name) < 0) return true;
+        if (name < other.name) return true;
         else return false;
     }
     bool operator == (const StationInfo& other) const {
-        if (strcmp(name, other.name) == 0) return true;
+        if (name == other.name) return true;
         else return false;
     }
     bool operator> (const StationInfo& other) const {
-        if (strcmp(name, other.name) > 0) return true;
+        if (name > other.name) return true;
         else return false;
     }
     bool operator != (const StationInfo& other) {
-        if (strcmp(name, other.name) != 0) return true;
+        if (name != other.name) return true;
         else return false;
     }
 };
@@ -65,9 +65,9 @@ class TrainInfo{
     friend class TicketSystem;
     friend class TransComp;
 private:
-    char trainID[24] = {'\0'};
+    myChar<24> trainID;
     int stationNum = 0;
-    char type = '\0';
+    myChar<2> type;
     Time ini_time;
     // 1-based
     StationInfo stations[22];
@@ -77,11 +77,11 @@ private:
     int index = 0;
 public:
     TrainInfo(){}
-    explicit TrainInfo(const char* id, const int &n, char t, const Date &date_, const Time &time, bool flag, const int &ms) :stationNum(n), type(t),date(date_), ini_time(time), isRelease(flag), maxSeats(ms){
-        strcpy(trainID, id);
+    explicit TrainInfo(const myChar<24>& id, const int &n, const myChar<2>& t, const Date &date_, const Time &time, bool flag, const int &ms) :stationNum(n), type(t),date(date_), ini_time(time), isRelease(flag), maxSeats(ms){
+        trainID = id;
     }
     explicit TrainInfo(const TrainInfo& other) {
-        strcpy(trainID, other.trainID);
+        trainID = other.trainID;
         stationNum = other.stationNum;
         type = other.type;
         ini_time = other.ini_time;
@@ -96,7 +96,7 @@ public:
 
     TrainInfo& operator=(const TrainInfo& other) {
         if (this == &other) return *this;
-        strcpy(trainID, other.trainID);
+        trainID = other.trainID;
         stationNum = other.stationNum;
         type = other.type;
         ini_time = other.ini_time;
@@ -110,15 +110,15 @@ public:
         return *this;
     }
     bool operator==(const TrainInfo& other) {
-        if (strcmp(trainID, other.trainID) == 0) return true;
+        if (trainID == other.trainID) return true;
         else return false;
     }
     bool operator < (const TrainInfo& other) {
-        if (strcmp(trainID, other.trainID) < 0) return true;
+        if (trainID < other.trainID) return true;
         else return false;
     }
     bool operator > (const TrainInfo& other) {
-        if (strcmp(trainID, other.trainID) > 0) return true;
+        if (trainID > other.trainID) return true;
         else return false;
     }
 };
@@ -170,16 +170,16 @@ class TrainSta{
     friend class TransComp;
 private:
     basicInfo info;
-    char trainID[24] = {'\0'};
+    myChar<24> trainID;
     int st_index = 0;// 这一站在train中是第几站
     int price = 0;
     int a_time = 0;
     int l_time = 0;
 public:
     TrainSta() = default;
-    explicit TrainSta(const char *i, basicInfo &bi, int &si, int &p, int &at, int &lt) : st_index(si), price(p), a_time(at), l_time(lt){
+    explicit TrainSta(const myChar<24>& i, basicInfo &bi, int &si, int &p, int &at, int &lt) : st_index(si), price(p), a_time(at), l_time(lt){
         info = bi;
-        strcpy(trainID, i);
+        trainID = i;
     }
     TrainSta& operator=(const TrainSta& other) {
         if (this == &other) return *this;
@@ -188,7 +188,7 @@ public:
         l_time = other.l_time;
         price = other.price;
         st_index = other.st_index;
-        strcpy(trainID, other.trainID);
+        trainID = other.trainID;
         return *this;
     }
     bool operator ==(const TrainSta& other) const {
@@ -209,21 +209,21 @@ private:
     int st_lt = 0;
     int en_at = 0;
     basicInfo info;
-    char trainID[24] = {'\0'};
+    myChar<24> trainID;
     int st = 0;
     int en = 0;
 public:
     compInfo() = default;
-    explicit compInfo(const char *i, int p, int t, basicInfo& bi, int lt, int at, int si, int ei) :price(p), time(t), st_lt(lt), en_at(at), st(si), en(ei){
+    explicit compInfo(const myChar<24>& i, int p, int t, basicInfo& bi, int lt, int at, int si, int ei) :price(p), time(t), st_lt(lt), en_at(at), st(si), en(ei){
         info = bi;
-        strcpy(trainID, i);
+        trainID = i;
     }
     compInfo& operator=(const compInfo& other) {
         if (this == &other) return *this;
         price = other.price;
         time = other.time;
         info = other.info;
-        strcpy(trainID, other.trainID);
+        trainID = other.trainID;
         st_lt = other.st_lt;
         en_at = other.en_at;
         st = other.st;
@@ -236,7 +236,7 @@ public:
     bool operator() (const compInfo& a, const compInfo& b) const {
         if (a.time > b.time) return true;
         else if (a.time == b.time) {
-            if (strcmp(a.trainID, b.trainID) > 0) return true;
+            if (a.trainID > b.trainID) return true;
             else return false;
         } else return false;
     }
@@ -246,7 +246,7 @@ public:
     bool operator() (const compInfo& a, const compInfo& b) const {
         if (a.price > b.price) return true;
         else if (a.price == b.price) {
-            if (strcmp(a.trainID, b.trainID) > 0) return true;
+            if (a.trainID > b.trainID) return true;
             else return false;
         } else return false;
     }
@@ -271,11 +271,11 @@ private:
     Yuki::pair<Day, Time> mid_lea;
     Yuki::pair<Day, Time> st_lea;
     Yuki::pair<Day, Time> en_arr;
-    char mid[30] = {'\0'};
+    myChar<30> mid;
 public:
     TransComp() = default;
-    explicit TransComp(int t, int c, const char *i) : time(t), cost(c) {
-        strcpy(mid, i);
+    explicit TransComp(int t, int c, const myChar<30>& i) : time(t), cost(c) {
+        mid = i;
     }
     TransComp& operator=(const TransComp& other) {
         if (this == &other) return *this;
@@ -287,7 +287,7 @@ public:
         mid_lea = other.mid_lea;
         st_lea = other.st_lea;
         en_arr = other.en_arr;
-        strcpy(mid, other.mid);
+        mid = other.mid;
         return *this;
     }
     bool comp_cost(const TransComp& other) {
@@ -296,10 +296,10 @@ public:
             if (time > other.time) return true;
             else if (time < other.time) return false;
             else {
-                if (strcmp(first.trainID, other.first.trainID) > 0) return true;
-                else if (strcmp(first.trainID, other.first.trainID) < 0) return false;
+                if (first.trainID > other.first.trainID) return true;
+                else if (first.trainID < other.first.trainID) return false;
                 else {
-                    if (strcmp(second.trainID, other.second.trainID) > 0) return true;
+                    if (second.trainID > other.second.trainID) return true;
                     else return false;
                 }
             }
@@ -311,10 +311,10 @@ public:
             if (cost > other.cost) return true;
             else if (cost < other.cost) return false;
             else {
-                if (strcmp(first.trainID, other.first.trainID) > 0) return true;
-                else if (strcmp(first.trainID, other.first.trainID) < 0) return false;
+                if (first.trainID > other.first.trainID) return true;
+                else if (first.trainID < other.first.trainID) return false;
                 else {
-                    if (strcmp(second.trainID, other.second.trainID) > 0) return true;
+                    if (second.trainID > other.second.trainID) return true;
                     else return false;
                 }
             }

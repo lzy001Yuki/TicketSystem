@@ -2,89 +2,19 @@
 #define TICKETSYSTEM_USERSYSTEM_HPP
 #include"../BPT/BPTree.hpp"
 #include<filesystem>
-#include<utility>
-#include<map>
-
-class UserManagement;
-class UserInfo{
-    friend class UserManagement;
-    friend class TicketSystem;
-private:
-    char username[24] = {'\0'};
-    char password[32] = {'\0'};
-    char name[20] = {'\0'};
-    char mailAddr[32] = {'\0'};
-    int privilege = -1;
-    //bool isLogin = false;
-
-public:
-    UserInfo() = default;
-    explicit UserInfo(const char* un, const char *pw, const char* n, const char* ma, int p, bool flag = false) :privilege(p)
-    {
-        strcpy(username, un);
-        strcpy(password, pw);
-        strcpy(name, n);
-        strcpy(mailAddr, ma);
-    }
-
-    void create(const char* un, const char *pw, const char* n, const char* ma, int p, bool flag = false) {
-        strcpy(username, un);
-        strcpy(password, pw);
-        strcpy(name, n);
-        strcpy(mailAddr, ma);
-        privilege = p;
-    }
-    friend std::ostream &operator<<(std::ostream &os, const UserInfo &user_info) {
-        os<<user_info.username<<' '<<user_info.name<<' '<<user_info.mailAddr<<' '<<user_info.privilege<<'\n';
-        return os;
-    }
-
-    bool operator == (const UserInfo& other) {
-        return !(strcmp(username, other.username));
-    }
-
-    bool operator < (const UserInfo& other) {
-        if (strcmp(username, other.username) < 0) return true;
-        else return false;
-    }
-
-    bool operator > (const UserInfo &other) {
-        if (strcmp(username, other.username) > 0) return true;
-        else return false;
-    }
-
-    UserInfo& operator=(const UserInfo & other) {
-        if (this == &other) return *this;
-        strcpy(username, other.username);
-        strcpy(password, other.password);
-        strcpy(name, other.name);
-        strcpy(mailAddr, other.mailAddr);
-        privilege = other.privilege;
-        //isLogin = other.isLogin;
-        return *this;
-    }
-    ~UserInfo() = default;
-};
-
-class nameFunction{
-public:
-    int operator() (const int &num) {
-        return num * 13;
-    }
-};
-
+#include"../BPT/map.hpp"
+#include"userType.hpp"
 class UserManagement{
     friend class TicketSystem;
 private:
     // 键值对为username--user_info
-    BPT<char, int, nameFunction, 22, 2, 1024> userData;
+    BPT<myChar<24>, int, nameFunction, 22, 2, 1024> userData;
     FileSystem<UserInfo, 2> userIndex;
     int total = 0;
-    //Yuki::HashMap<int, UserInfo, nameFunction, 53, 301> Buffer;
     static ll changeToPos(int index) {
         return 2 * sizeof(int) + index * sizeof(UserInfo);
     }
-    std::map<std::string, int> LogIn;
+    sjtu::map<myChar<24>, int> LogIn;
 public:
     UserManagement(): userData("user.txt", "space_user.txt"){
         userIndex.initialise("userIndex.txt");
@@ -92,35 +22,33 @@ public:
     }
     ~UserManagement() {
         userIndex.write_info(total, 1);
-        //Buffer.clearing(userIndex, 2);
     }
-    int addUser(const char* cur_user, const char *new_user, const char *pw, const char *name, const char *mail, int p) {
+    int addUser(const myChar<24>& cur_user, const myChar<24>& new_user, const myChar<32>& pw, const myChar<24>&  name, const myChar<32>& mail, int p) {
         if (userData.empty()) {
             UserInfo rootInfo(new_user, pw, name, mail, 10);
-            userData.insert(Yuki::pair<char, int>(new_user, total));
+            userData.insert(Yuki::pair<myChar<24> , int>(new_user, total));
             userIndex.write(rootInfo, changeToPos(total));
-            //Buffer.insert(total, rootInfo, userIndex, 2, false);
             total++;
             return 0;
         }
-        if (cur_user == nullptr) return -1;
+        if (cur_user.isNull()) return -1;
         auto it = LogIn.find(cur_user);
         if (it == LogIn.end()) return -1;
         if (p > it->second) return -1; // 创建用户权限大于当前用户
-        if (p == it->second && strcmp(cur_user, new_user) != 0) return -1;
+        if (p == it->second && cur_user != new_user) return -1;
         UserInfo user_info(new_user, pw, name, mail, p);
         int user_index;
         bool exist = userData.findKV(new_user, user_index);
         if (exist) {
             return -1;
         }
-        userData.insert(Yuki::pair<char, int> (new_user, total));
+        userData.insert(Yuki::pair<myChar<24>, int> (new_user, total));
         userIndex.write(user_info, changeToPos(total));
         total++;
         return 0;
     }
 
-    int logIn(const char *username, const char *password) {
+    int logIn(const myChar<24>& username, const myChar<32>& password) {
         UserInfo now_user;
         int now_index;
         bool exist = userData.findKV(username, now_index);
@@ -128,19 +56,19 @@ public:
         auto it = LogIn.find(username);
         if (it != LogIn.end()) return -1;
         userIndex.read(now_user, changeToPos(now_index));
-        if (strcmp(password, now_user.password) != 0) return -1;
-        LogIn.insert(std::pair<std::string, int>(username, now_user.privilege));
+        if (password != now_user.password) return -1;
+        LogIn.insert(Yuki::pair<myChar<24>, int>(username, now_user.privilege));
         return 0;
     }
 
-    int logOut(const char *username) {
+    int logOut(const myChar<24>& username) {
         auto it = LogIn.find(username);
         if (it == LogIn.end()) return -1;
         LogIn.erase(it);
         return 0;
     }
 
-    Yuki::pair<UserInfo, bool> query_profile(const char* cur_name, const char *username) {
+    Yuki::pair<UserInfo, bool> query_profile(const myChar<24>& cur_name, const myChar<24>& username) {
         UserInfo query_user;
         auto it = LogIn.find(cur_name);
         if (it == LogIn.end()) return {query_user, false};
@@ -149,11 +77,11 @@ public:
         if (!exist_) return {query_user, false};
         userIndex.read(query_user, changeToPos(q_index));
         if (it->second < query_user.privilege) return {query_user, false};
-        if (it->second == query_user.privilege && strcmp(cur_name, username) != 0) return {query_user, false};
+        if (it->second == query_user.privilege && cur_name != username) return {query_user, false};
         return {query_user, true};
     }
 
-    Yuki::pair<UserInfo, bool> modify_profile(const char* cur_name, const char *username, const char *pw, const char *n, const char *mail, int p = -1) {
+    Yuki::pair<UserInfo, bool> modify_profile(const myChar<24>& cur_name, const myChar<24>& username, const myChar<32>& pw, const myChar<24>& n, const myChar<32>& mail, int p = -1) {
         UserInfo query_user;
         auto it = LogIn.find(cur_name);
         if (it == LogIn.end()) return {query_user, false};
@@ -162,10 +90,10 @@ public:
         if (!exist_) return {query_user, false};
         userIndex.read(query_user, changeToPos(q_index));
         if (query_user.privilege > it->second) return {query_user, false};
-        if (query_user.privilege == it->second && ((strcmp(cur_name, username) != 0) || p >= query_user.privilege) ) return {query_user, false};
-        if (pw[0] != '\0') strcpy(query_user.password, pw);
-        if (n[0] != '\0') strcpy(query_user.name, n);
-        if (mail[0] != '\0') strcpy(query_user.mailAddr, mail);
+        if (query_user.privilege == it->second && ((cur_name != username) || p >= query_user.privilege)) return {query_user, false};
+        if (!pw.isNull()) query_user.password = pw;
+        if (!n.isNull()) query_user.name = n;
+        if (!mail.isNull()) query_user.mailAddr = mail;
         if (p != -1) query_user.privilege = p;
         userIndex.write(query_user, changeToPos(q_index));
         return {query_user, true};

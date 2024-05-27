@@ -28,7 +28,7 @@ namespace Yuki {
         pair(pair<U1, U2> &&other) : first(other.first), second(other.second) {}
 
         pair& operator=(const pair& other) {
-            if (*this == other) return *this;
+            if (this == &other) return *this;
             first = other.first;
             second = other.second;
             return *this;
@@ -63,7 +63,7 @@ namespace Yuki {
             return (*this < other) || (*this == other);
         }
     };
-
+/*
     template<class T2>
     class pair<char, T2>{
     public:
@@ -164,5 +164,6 @@ namespace Yuki {
             return !(*this < other);
         }
     };
+    */
 }
 #endif //TICKETSYSTEM_UTILITY_HPP

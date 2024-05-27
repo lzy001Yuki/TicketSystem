@@ -1,6 +1,5 @@
 #include <iostream>
 #include<string>
-#include<cstdio>
 #include "src/UserSystem.hpp"
 #include "src/TrainSystem.hpp"
 #include"src/TicketSystem.hpp"
@@ -17,37 +16,34 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
     std::cout<<timeStamp<<' ';
 
     // 检查query_transfer的问题 余票也有问题
-    if (timeStamp == "[264091]") {
+    if (timeStamp == "[29393]") {
         int y = 2;
     }
 
     if (cmd == "add_user") {
-        char cur_name[25] = {'\0'};
-        char user[25] = {'\0'};
-        char pw[32] = {'\0'};
-        char name[25] = {'\0'};
-        char mail[32] = {'\0'};
+        myChar<24> cur_name, name, user;
+        myChar<32> pw, mail;
         int pri = -1;
         int pos = 2;
         while (pos < parse.size()) {
             if (parse[pos] == "-c") {
                 //if (!TokenScanner::checkUser(parse[pos + 1])) throw InvalidExp();
-                strcpy(cur_name, parse[pos + 1].c_str());
+                cur_name.toChar(parse[pos + 1]);
             }
             if (parse[pos] == "-u") {
                 //if (!TokenScanner::checkUser(parse[pos + 1])) throw InvalidExp();
-                strcpy(user, parse[pos + 1].c_str());
+                user.toChar(parse[pos + 1]);
             }
             if (parse[pos] == "-p") {
                 //if (!TokenScanner::checkPw(parse[pos + 1])) throw InvalidExp();
-                strcpy(pw, parse[pos + 1].c_str());
+                pw.toChar(parse[pos + 1]);
             }
             if (parse[pos] == "-n") {
-                strcpy(name, parse[pos + 1].c_str());
+                name.toChar(parse[pos + 1]);
             }
             if (parse[pos] == "-m") {
                 //if (!TokenScanner::checkMail(parse[pos + 1])) throw InvalidExp();
-                strcpy(mail, parse[pos + 1].c_str());
+                mail.toChar(parse[pos + 1]);
             }
             if (parse[pos] == "-g") {
                 pri = TokenScanner::StringToInteger(parse[pos + 1]);
@@ -55,44 +51,42 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
             }
             pos += 2;
         }
-        if (cur_name[0] == '\0') std::cout<<userSystem.addUser(nullptr, user, pw, name, mail, pri)<<'\n';
-        else std::cout<<userSystem.addUser(cur_name, user, pw, name, mail, pri)<<'\n';
+        std::cout<<userSystem.addUser(cur_name, user, pw, name, mail, pri)<<'\n';
     } else if (cmd == "login") {
         //if (parse.size() != 6) throw InvalidExp();
-        char name[25] = {'\0'};
-        char pw[32] = {'\0'};
+        myChar<24> name;
+        myChar<32> pw;
         int pos = 2;
         while (pos < parse.size()) {
             if (parse[pos] == "-u") {
                 //if (!TokenScanner::checkUser(parse[pos + 1])) throw InvalidExp();
-                strcpy(name, parse[pos + 1].c_str());
+                name.toChar(parse[pos + 1]);
             }
             if (parse[pos] == "-p") {
                 //if (!TokenScanner::checkPw(parse[pos + 1])) throw InvalidExp();
-                strcpy(pw, parse[pos + 1].c_str());
+                pw.toChar(parse[pos + 1]);
             }
             pos += 2;
         }
         std::cout<<userSystem.logIn(name, pw)<<'\n';
     } else if (cmd == "logout") {
         //if (parse.size() != 4) throw InvalidExp();
-        char name[25] = {'\0'};
+        myChar<24> name;
         //if (!TokenScanner::checkUser(parse[3])) throw InvalidExp();
-        strcpy(name, parse[3].c_str());
+        name.toChar(parse[3]);
         std::cout<<userSystem.logOut(name)<<'\n';
     } else if (cmd == "query_profile") {
         //if (parse.size() != 6) throw InvalidExp();
         int pos = 2;
-        char name[25] = {'\0'};
-        char user[25] = {'\0'};
+        myChar<24> name, user;
         while (pos < parse.size()) {
             if (parse[pos] == "-c") {
                 //if (!TokenScanner::checkUser(parse[pos + 1])) throw InvalidExp();
-                strcpy(name, parse[pos + 1].c_str());
+                name.toChar(parse[pos + 1]);
             }
             if (parse[pos] == "-u") {
                 //if (!TokenScanner::checkUser(parse[pos + 1])) throw InvalidExp();
-                strcpy(user, parse[pos + 1].c_str());
+                user.toChar(parse[pos + 1]);
             }
             pos += 2;
         }
@@ -100,32 +94,29 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
         if (!ans.second) std::cout<<"-1\n";
         else std::cout<<ans.first;
     } else if (cmd == "modify_profile") {
-        char cur_name[25] = {'\0'};
-        char user[25] = {'\0'};
-        char pw[32] = {'\0'};
-        char name[25] = {'\0'};
-        char mail[32] = {'\0'};
+        myChar<24> cur_name, user, name;
+        myChar<32> pw, mail;
         int pri = -1;
         int pos = 2;
         while (pos < parse.size()) {
             if (parse[pos] == "-c") {
                 //if (!TokenScanner::checkUser(parse[pos + 1])) throw InvalidExp();
-                strcpy(cur_name, parse[pos + 1].c_str());
+                cur_name.toChar(parse[pos + 1]);
             }
             if (parse[pos] == "-u") {
                 //if (!TokenScanner::checkUser(parse[pos + 1])) throw InvalidExp();
-                strcpy(user, parse[pos + 1].c_str());
+                user.toChar(parse[pos + 1]);
             }
             if (parse[pos] == "-p") {
                 //if (!TokenScanner::checkPw(parse[pos + 1])) throw InvalidExp();
-                strcpy(pw, parse[pos + 1].c_str());
+                pw.toChar(parse[pos + 1]);
             }
             if (parse[pos] == "-n") {
-                strcpy(name, parse[pos + 1].c_str());
+                name.toChar(parse[pos + 1]);
             }
             if (parse[pos] == "-m") {
                 //if (!TokenScanner::checkMail(parse[pos + 1])) throw InvalidExp();
-                strcpy(mail, parse[pos + 1].c_str());
+                mail.toChar(parse[pos + 1]);
             }
             if (parse[pos] == "-g") {
                 pri = TokenScanner::StringToInteger(parse[pos + 1]);
@@ -137,7 +128,7 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
         if (!ans.second) std::cout<<"-1\n";
         else std::cout<<ans.first;
     } else if (cmd == "add_train") {
-        char id[24] = {'\0'};
+        myChar<24> id;
         int n;
         int m;
         Yuki::vector<string> s;
@@ -146,13 +137,13 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
         Yuki::vector<int> t;
         Yuki::vector<int> o;
         Date date;
-        char type;
+        myChar<2> type;
         int pos = 2;
         //parse[parse.size() - 1] = parse[parse.size() - 1].substr(0, parse[parse.size() - 1].size() - 1);
         while (pos < parse.size()) {
             if (parse[pos] == "-i") {
                 //if (!TokenScanner::checkTrain(parse[pos + 1])) throw InvalidExp();
-                strcpy(id, parse[pos + 1].c_str());
+                id.toChar(parse[pos + 1]);
             }
             if (parse[pos] == "-n") {
                 n = TokenScanner::StringToInteger(parse[pos + 1]);
@@ -181,21 +172,21 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
                 date = TokenScanner::stringToDate(parse[pos + 1]);
             }
             if (parse[pos] == "-y") {
-                type = TokenScanner::stringToType(parse[pos + 1]);
+                type.toChar(parse[pos + 1]);
             }
             pos += 2;
         }
         std::cout<<trainSystem.add_train(id, n, m, s, p, ini_time, t, o, date, type)<<'\n';
     } else if (cmd == "query_train") {
         //if (parse.size() != 6) throw InvalidExp();
-        char id[22] = {'\0'};
+        myChar<24> id;
         Day day;
         int pos = 2;
         //parse[parse.size() - 1] = parse[parse.size() - 1].substr(0, parse[parse.size() - 1].size() - 1);
         while (pos < parse.size()) {
             if (parse[pos] == "-i") {
                 //if (!TokenScanner::checkTrain(parse[pos + 1])) throw InvalidExp();
-                strcpy(id, parse[pos + 1].c_str());
+                id.toChar(parse[pos + 1]);
             }
             if (parse[pos] == "-d") {
                 day = TokenScanner::stringToDay(parse[pos + 1]);
@@ -210,25 +201,24 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
     } else if (cmd == "delete_train") {
         //if (parse.size() != 4) throw InvalidExp();
         //if (parse[2] != "-i") throw InvalidExp();
-        char id[22] = {'\0'};
-        strcpy(id, parse[3].c_str());
+        myChar<24> id;
+        id.toChar(parse[3]);
         std::cout<<trainSystem.delete_train(id)<<'\n';
     } else if (cmd == "release_train") {
         //if (parse.size() != 4) throw InvalidExp();
         //if (parse[2] != "-i") throw InvalidExp();
-        char id[22] = {'\0'};
-        strcpy(id, parse[3].c_str());
+        myChar<24> id;
+        id.toChar(parse[3]);
         std::cout<<trainSystem.release_train(id)<<'\n';
     } else if (cmd == "query_ticket" || cmd == "query_transfer") {
-        char st[25] = {'\0'};
-        char en[25] = {'\0'};
+        myChar<30> st, en;
         Day day;
         bool flag;
         int pos = 2;
         //parse[parse.size() - 1] = parse[parse.size() - 1].substr(0, parse[parse.size() - 1].size() - 1);
         while (pos < parse.size()) {
-            if (parse[pos] == "-s") strcpy(st, parse[pos + 1].c_str());
-            if (parse[pos] == "-t") strcpy(en, parse[pos + 1].c_str());
+            if (parse[pos] == "-s") st.toChar(parse[pos + 1]);
+            if (parse[pos] == "-t") en.toChar(parse[pos + 1]);
             if (parse[pos] == "-d") {
                 day = TokenScanner::stringToDay(parse[pos + 1]);
             }
@@ -242,22 +232,20 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
         if (cmd == "query_ticket") trainSystem.query_ticket(st, en, day, flag);
         else trainSystem.query_transfer(st, en, day, flag);
     } else if (cmd == "buy_ticket"){
-        char u[24] = {'\0'};
-        char id[22] = {'\0'};
+        myChar<24> u, id;
         Day day;
-        char st[25] = {'\0'};
-        char en[25] = {'\0'};
+        myChar<30> st, en;
         int n;
         bool flag = false;
         int pos = 2;
         //parse[parse.size() - 1] = parse[parse.size() - 1].substr(0, parse[parse.size() - 1].size() - 1);
         while (pos < parse.size()) {
-            if (parse[pos] == "-u") strcpy(u, parse[pos + 1].c_str());
-            if (parse[pos] == "-i") strcpy(id, parse[pos + 1].c_str());
+            if (parse[pos] == "-u") u.toChar(parse[pos + 1]);
+            if (parse[pos] == "-i") id.toChar(parse[pos + 1]);
             if (parse[pos] == "-d") day = TokenScanner::stringToDay(parse[pos + 1]);
             if (parse[pos] == "-n") n = TokenScanner::StringToInteger(parse[pos + 1]);
-            if (parse[pos] == "-f") strcpy(st, parse[pos + 1].c_str());
-            if (parse[pos] == "-t") strcpy(en, parse[pos + 1].c_str());
+            if (parse[pos] == "-f") st.toChar(parse[pos + 1]);
+            if (parse[pos] == "-t") en.toChar(parse[pos + 1]);
             if (parse[pos] == "-q") {
                 if (parse[pos + 1] == "false") flag = false;
                 else flag = true;
@@ -267,15 +255,15 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
         ticketSystem.buy_ticket(u, id, day, n, st, en, flag, userSystem, trainSystem, TokenScanner::stringToStamp(parse[0]));
     } else if (cmd == "query_order") {
         //if (parse.size() != 4) throw InvalidExp();
-        char u[24] = {'\0'};
+        myChar<24> u;
         //if (parse[2] != "-u") throw InvalidExp();
         //if (!TokenScanner::checkUser(parse[3])) throw InvalidExp();
         //parse[parse.size() - 1] = parse[parse.size() - 1].substr(0, parse[parse.size() - 1].size() - 1);
-        strcpy(u, parse[3].c_str());
+        u.toChar(parse[3]);
         ticketSystem.query_order(u, userSystem, trainSystem);
     } else if (cmd == "refund_ticket") {
         int n;
-        char u[24] = {'\0'};
+        myChar<24> u;
         if (parse.size() == 4) n = 1;
         //if (parse.size() != 4 && parse.size() != 6) throw InvalidExp();
         int pos = 2;
@@ -283,7 +271,7 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
         while (pos < parse.size()) {
             if (parse[pos] == "-u") {
                 //if (!TokenScanner::checkUser(parse[pos + 1])) throw InvalidExp();
-                strcpy(u, parse[pos + 1].c_str());
+                u.toChar(parse[pos + 1]);
             }
             if (parse[pos] == "-n") {
                 n = TokenScanner::StringToInteger(parse[pos + 1]);
@@ -297,7 +285,6 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
         UserManagement::clean();
         std::cout<<"0\n";
     } else if (cmd == "exit") {
-        //userSystem.LogTraverse();
         std::cout<<"bye\n";
         return false;
     }
@@ -305,7 +292,7 @@ bool processLine(const std::string &line, UserManagement &userSystem, TrainSyste
 }
 
 int main() {
-    //std::freopen("../testcases/pressure_2_easy/55.in", "r", stdin);
+    //std::freopen("../testcases/pressure_1_easy/46.in", "r", stdin);
     //std::freopen("answer.txt", "w", stdout);
     std::ios::sync_with_stdio(false);
     std::cin.tie(0);

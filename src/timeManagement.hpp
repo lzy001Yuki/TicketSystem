@@ -3,6 +3,7 @@
 #include<string>
 #include<iomanip>
 #include<iostream>
+#include"../BPT/utility.hpp"
 int Month[13] = {0,31,29,31,30,31,30,31,31,30,31,30,31};
 class Time{
     friend class Day;
@@ -10,6 +11,7 @@ class Time{
     friend class StationInfo;
     friend class TrainInfo;
     friend class TokenScanner;
+    friend class TimeManagement;
 private:
     int hour = -1;
     int minute = -1;
@@ -72,6 +74,7 @@ class Day{
     friend class Date;
     friend class TrainSystem;
     friend class TokenScanner;
+    friend class TimeManagement;
 private:
     int month = -1;
     int day = -1;
@@ -153,6 +156,7 @@ class Date{
     friend class TrainInfo;
     friend class TrainSystem;
     friend class TokenScanner;
+    friend class TimeManagement;
 private:
     Day st;
     Day en;
@@ -177,6 +181,67 @@ public:
         st = other.st;
         en = other.en;
         return *this;
+    }
+};
+
+class TimeManagement {
+public:
+// 发车时间距离st多少天，now是现在的时间，不是这一班车的发车时间
+    static int cal_now(const Date &d, const Day &now) {
+        int sum = 0;
+        for (int i = d.st.month + 1; i < now.month; i++) {
+            sum += Month[i];
+        }
+        if (d.st.month != now.month) {
+            sum += (Month[d.st.month] - d.st.day + 1);
+            sum += now.day;
+        } else {
+            sum += (now.day - d.st.day + 1);
+        }
+        return sum;
+    }
+
+    static Yuki::pair<Day, Time> showTime(const Day &d, const Time &t, int num) {
+        // show到达本站和离开本站的绝对时间
+        // d   t每天的始发时间 num到本站所用的时间
+        Day day = d;
+        Time time = t;
+        time.minute += num;
+        if (time.minute >= 60) {
+            time.hour += (time.minute / 60);
+            time.minute = time.minute % 60;
+        }
+        if (time.hour >= 24) {
+            day.day += (time.hour / 24);
+            time.hour = time.hour % 24;
+        }
+        if (day.day > Month[day.month]) {
+            day.day -= Month[day.month];
+            day.month += 1;
+        }
+        return {day, time};
+    }
+
+    static Day checkBegin(const Day &now, const Time &ini, int num) {
+        Time time = ini;
+        Day st = now;
+        time.minute += num;
+        if (time.minute >= 60) {
+            time.hour += (time.minute / 60);
+            time.minute = time.minute % 60;
+        }
+        int d_plus = 0, month_plus = 0;
+        if (time.hour >= 24) {
+            d_plus = time.hour / 24;
+            time.hour = time.hour % 24;
+        }
+        if (now.day <= d_plus) {
+            st.month--;
+            st.day = Month[st.month] + now.day - d_plus;
+        } else {
+            st.day -= d_plus;
+        }
+        return st;
     }
 };
 #endif //TICKETSYSTEM_TIMEMANAGEMENT_HPP
