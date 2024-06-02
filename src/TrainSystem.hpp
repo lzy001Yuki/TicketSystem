@@ -224,10 +224,7 @@ public:
             }
         }
         for (int i = 0; i < all.size(); i += 2) {
-            //TrainInfo objTrain;
-            //trainIndex.read(objTrain, indexToPos(all[i].first));
             int res = all[i].st_index;
-            //StationInfo st = objTrain.stations[res];
             Day earliest(TimeManagement::showTime(all[i].info.date.st, all[i].info.ini, all[i].l_time).first);
             Day latest(TimeManagement::showTime(all[i].info.date.en, all[i].info.ini, all[i].l_time).first);
             Date dur(earliest, latest);

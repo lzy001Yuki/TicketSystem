@@ -90,13 +90,6 @@ private:
     BPT<TrainTime, Ticket, TicketFunction, 10, 2, 13> Waiting;
 
     void update_ticket(TrainInfo &trainInfo, const Ticket& ticket, TrainSystem& train, bool type, Seats& seats) {
-        myChar<24> tr("LeavesofGrass");
-        if (trainInfo.trainID == tr) {
-            int y = 2;
-        }
-        if (trainInfo.trainID != ticket.trainID) {
-            int y = 2;
-        }
         int s_index = ticket.st;
         int t_index = ticket.en;
         if (type) {
@@ -162,10 +155,6 @@ public:
         }
         Day st_day = TimeManagement::checkBegin(d, trainInfo.ini_time, trainInfo.stations[s_index].leaveTime);
         int dur_time = TimeManagement::cal_now(trainInfo.date, st_day);
-        myChar<24> tr("LeavesofGrass");
-        if (dur_time == 47 && trainInfo.trainID == tr) {
-            int y = 2;
-        }
         Seats s;
         train.seatsIndex.read(s, sizeof(Seats) * (durMax * trainInfo.index + dur_time));
         int seats = train.cal_ticket(s_index, t_index, s, trainInfo.maxSeats);
@@ -190,14 +179,6 @@ public:
                 TrainTime trainTime(trainInfo.trainID, st_day);
                 Waiting.insert(Yuki::pair<TrainTime, Ticket> (trainTime, ticket));
             }
-        }
-        Day dd(8, 2);
-        TrainTime tt(tr, dd);
-        myChar<24> uu("Earthspirit");
-        myChar<24> trtr("LeavesofGrass");
-        Ticket tii(uu, trtr, 4, 6, 8147, dd, 22012, pending);
-        if (!Waiting.findKV(tt, tii) && time >= 22012) {
-            int y = 2;
         }
     }
 
@@ -265,10 +246,6 @@ public:
         if (refund.status == pending) {
             Waiting.erase(Yuki::pair<TrainTime, Ticket> (re_train, refund));
         }
-        myChar<24> tr("LeavesofGrass");
-        if (tr == refund.trainID) {
-            int y = 2;
-        }
         int dur = TimeManagement::cal_now(trainInfo.date, st_day);
         Seats s;
         train.seatsIndex.read(s, sizeof(Seats) * (durMax * trainInfo.index + dur));
@@ -279,9 +256,6 @@ public:
                 int s_index = waitingList[i].st;
                 int t_index = waitingList[i].en;
                 // 在re_train.day这一天发车
-                if (tr == waitingList[i].trainID) {
-                    int y = 2;
-                }
                 int seats = train.cal_ticket(s_index, t_index, s, trainInfo.maxSeats);
                 Day w_st = TimeManagement::checkBegin(waitingList[i].day, trainInfo.ini_time,
                                                    trainInfo.stations[s_index].leaveTime);
@@ -294,7 +268,6 @@ public:
                 }
             }
         }
-        //train.trainData.update(Yuki::pair<char, TrainInfo> (trainInfo.trainID, trainInfo));
         refund.status = refunded;
         Order.update(Yuki::pair<myChar<24>, Ticket> (u, refund));
         train.trainIndex.write(trainInfo, TrainSystem::indexToPos(bi.index));
